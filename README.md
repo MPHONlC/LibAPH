@@ -11,7 +11,7 @@
 
 </div>
 
-LibAPH bundles the UI and lifecycle boilerplate that [Permanent Memento](https://www.esoui.com/downloads/info4116) and [Auto Lua Memory Cleaner](https://www.esoui.com/downloads/info4388) kept rewriting by hand: movable status windows, a scrollable list window, gamepad drag-to-move, platform detection, player-busy checks, dialog/CSA/chat helpers, a double-pass GC cleanup engine, a soft-disable module manager with real live load/unload, localization, diagnostic formatters, error capture, and self-version-change tracking.
+LibAPH bundles the UI and lifecycle boilerplate that [Permanent Memento](https://www.esoui.com/downloads/info4116) and [Auto Lua Memory Cleaner](https://www.esoui.com/downloads/info4388) kept rewriting by hand: movable status windows, a scrollable list window, gamepad drag-to-move, platform detection, player-busy checks, dialog/CSA/chat helpers, a double-pass GC cleanup engine, a soft-disable module manager with opt-in live load/unload, localization, diagnostic formatters, error capture, and self-version-change tracking.
 
 It's built for those two addons first. If it's useful to yours, you're welcome to depend on it.
 
