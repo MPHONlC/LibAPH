@@ -1,0 +1,47 @@
+## Title: LibAPH
+## Description: Helper Library for APHONIC's addons.
+## IsLibrary: true
+## Version: 0.0.1
+## AddOnVersion: 260911001
+## Author: |ca500f3A|r|cb400e6P|r|cc300daH|r|cd200cdO|r|ce100c1NlC|r
+## APIVersion: 101050 101051
+## SavedVariables: LibAPH_SavedVariables
+## OptionalDependsOn: LibLanguage
+
+; Library
+CORE/LibAPH.lua
+DATA/LibAPH_KnownLibraries.lua
+DATA/LibAPH_KnownAddonDependencies.lua
+UI/LibAPH_Window.lua
+UI/LibAPH_Gamepad.lua
+UTILS/LibAPH_Platform.lua
+HELPERS/LibAPH_Messaging.lua
+MODULES/LibAPH_ModuleManager.lua
+UTILS/LibAPH_Localization.lua
+UTILS/LibAPH_Format.lua
+UTILS/LibAPH_ErrorCapture.lua
+UTILS/LibAPH_Cleanup.lua
+UTILS/LibAPH_LibraryVersionCheck.lua
+UTILS/LibAPH_LibraryManager.lua
+UTILS/LibAPH_AutoEnableRequiredDeps.lua
+UTILS/LibAPH_AddonManagerTooltip.lua
+UTILS/LibAPH_AddonManagerCheckbox.lua
+MODULES/LibAPH_Wizard.lua
+MENU/LibAPH_MenuRefresh.lua
+MENU/LibAPH_MenuState.lua
+UTILS/LibAPH_PlayerState.lua
+UTILS/LibAPH_SelfVersion.lua
+
+; This Add-on is not created by, affiliated with or sponsored by ZeniMax
+; Media Inc. or its affiliates. The Elder Scrolls® and related logos are
+; registered trademarks or trademarks of ZeniMax Media Inc. in the United
+; States and/or other countries. All rights reserved.
+;
+; You can read the full terms at:
+; https://account.elderscrollsonline.com/add-on-terms
+
+; LICENSE
+; Copyright 2026 @APHONlC
+; Licensed under the GNU General Public License v3.0 (GPLv3).
+;
+; For permissions or inquiries, contact @APHONlC on ESOUI or GitHub.
