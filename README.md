@@ -94,27 +94,27 @@ Split into one file per concern, all loaded automatically by the manifest:
 | File | Covers |
 |---|---|
 | `LibAPH.lua` | Namespace + `LibAPH.VERSION` (loaded first) |
-| `LibAPH_Window.lua` | `CreateStatusWindow`, `CreateRowList`, `CreateScrollListWindow`, `CreateCopyTextBox`, `AddButtonHoverEffects`, `SetWindowActive`, `AddFragmentToScenes`, `RemoveFragmentFromScenes` |
-| `LibAPH_Gamepad.lua` | `CreateGamepadMover` |
-| `LibAPH_Platform.lua` | `GetPlatformString`, `GetPlatformServiceName` |
-| `LibAPH_PlayerState.lua` | `IsPlayerCrafting`, `IsPlayerInteracting`, `IsPlayerInMenu`, `CheckBusyReason`, `CreateMovementTracker`, `CreateTeleportTracker` |
-| `LibAPH_Messaging.lua` | `ShowDialogChained`, `SafeCSA`, `CreateChatLogger`, `SendRawChatLine` |
-| `LibAPH_Cleanup.lua` | `RunDoubleGCPass` |
-| `LibAPH_ModuleManager.lua` | `CallOptional`, `ToggleModuleDisabled`, `ApplyModuleDisableOverrides`, `RegisterModuleLifecycle`, `HasModuleLifecycle`, `StashFunc`, `GetStashedFunc`, `SyncModuleLifecycle`, `BuildModuleLoadButton` |
-| `LibAPH_Wizard.lua` | `ScheduleWizardIfNeeded`, `AutoUnloadWizardModule` |
-| `LibAPH_Localization.lua` | `Localize`, `LoadLocalization`, `BuildLanguagePickerControls` |
-| `LibAPH_Format.lua` | `FormatVersionParen`, `FormatVersionBare`, `GetLibraryDriftColor`, `CheckLibraryVersion`, `FormatLibraryVersion`, `BuildLibraryWarning`, `BuildLibraryWarningFromData`, `FormatVersionHistory`, `FormatSettingsSnapshot`, `StripColors`, `ResetToDefaults`, `FormatInstallDateLine`, `FormatModuleFileLine`, `BuildModuleFileList`, `BuildBugReportText` |
-| `LibAPH_ErrorCapture.lua` | `HookErrorCapture` |
-| `LibAPH_SelfVersion.lua` | `CheckSelfVersion` |
-| `LibAPH_MenuState.lua` | `PersistSubmenuOpenState`, `TrackSubmenuOpenState`, `RestoreSubmenuOpenState` |
-| `LibAPH_MenuRefresh.lua` | `CreateMenuLabelRefresher` |
-| `LibAPH_LibraryVersionCheck.lua` | The `/libraryversioncheck` slash command |
-| `LibAPH_LibraryManager.lua` | The `/libcheck` slash command, `RegisterAddonDependencies`, plus its own internal `ScanOptionalLibraries`/`ApplyOptionalLibraryChoice`/`RunOptionalLibraryWizard`/`ReportPendingOptionalLibraryChanges` (not meant to be called from outside this file) |
-| `LibAPH_KnownLibraries.lua` | Reference table of popular ESO library names/versions, not runtime-required |
-| `LibAPH_KnownAddonDependencies.lua` | Curated snapshot of other addons' real `OptionalDependsOn` entries, used by `/libcheck` for any addon that never calls `RegisterAddonDependencies` itself |
-| `LibAPH_AutoEnableRequiredDeps.lua` | Auto-enables an addon's real required dependencies when it's manually enabled, PC and console alike |
-| `LibAPH_AddonManagerTooltip.lua` | Adds a Required/Optional library section to the native Add-On Manager's tooltip (PC), or builds one from scratch if nothing else does; `GetOptionalLibsFor` is its own internal helper, not meant to be called from outside this file |
-| `LibAPH_AddonManagerCheckbox.lua` | Re-shows the Add-On Manager's enable checkbox once a problem dependency is merely disabled, not missing or too old |
+| `Window.lua` | `CreateStatusWindow`, `CreateRowList`, `CreateScrollListWindow`, `CreateCopyTextBox`, `AddButtonHoverEffects`, `SetWindowActive`, `AddFragmentToScenes`, `RemoveFragmentFromScenes` |
+| `Gamepad.lua` | `CreateGamepadMover` |
+| `Platform.lua` | `GetPlatformString`, `GetPlatformServiceName` |
+| `PlayerState.lua` | `IsPlayerCrafting`, `IsPlayerInteracting`, `IsPlayerInMenu`, `CheckBusyReason`, `CreateMovementTracker`, `CreateTeleportTracker` |
+| `Messaging.lua` | `ShowDialogChained`, `SafeCSA`, `CreateChatLogger`, `SendRawChatLine` |
+| `Cleanup.lua` | `RunDoubleGCPass` |
+| `ModuleManager.lua` | `CallOptional`, `ToggleModuleDisabled`, `ApplyModuleDisableOverrides`, `RegisterModuleLifecycle`, `HasModuleLifecycle`, `StashFunc`, `GetStashedFunc`, `SyncModuleLifecycle`, `BuildModuleLoadButton` |
+| `Wizard.lua` | `ScheduleWizardIfNeeded`, `AutoUnloadWizardModule` |
+| `Localization.lua` | `Localize`, `LoadLocalization`, `BuildLanguagePickerControls` |
+| `Format.lua` | `FormatVersionParen`, `FormatVersionBare`, `GetLibraryDriftColor`, `CheckLibraryVersion`, `FormatLibraryVersion`, `BuildLibraryWarning`, `BuildLibraryWarningFromData`, `FormatVersionHistory`, `FormatSettingsSnapshot`, `StripColors`, `ResetToDefaults`, `FormatInstallDateLine`, `FormatModuleFileLine`, `BuildModuleFileList`, `BuildBugReportText` |
+| `ErrorCapture.lua` | `HookErrorCapture` |
+| `SelfVersion.lua` | `CheckSelfVersion` |
+| `MenuState.lua` | `PersistSubmenuOpenState`, `TrackSubmenuOpenState`, `RestoreSubmenuOpenState` |
+| `MenuRefresh.lua` | `CreateMenuLabelRefresher` |
+| `LibraryVersionCheck.lua` | The `/libraryversioncheck` slash command |
+| `LibraryManager.lua` | The `/libcheck` slash command, `RegisterAddonDependencies`, plus its own internal `ScanOptionalLibraries`/`ApplyOptionalLibraryChoice`/`RunOptionalLibraryWizard`/`ReportPendingOptionalLibraryChanges` (not meant to be called from outside this file) |
+| `KnownLibraries.lua` | Reference table of popular ESO library names/versions, not runtime-required |
+| `KnownAddonDependencies.lua` | Curated snapshot of other addons' real `OptionalDependsOn` entries, used by `/libcheck` for any addon that never calls `RegisterAddonDependencies` itself |
+| `AutoEnableRequiredDeps.lua` | Auto-enables an addon's real required dependencies when it's manually enabled, PC and console alike |
+| `AddonManagerTooltip.lua` | Adds a Required/Optional library section to the native Add-On Manager's tooltip (PC), or builds one from scratch if nothing else does; `GetOptionalLibsFor` is its own internal helper, not meant to be called from outside this file |
+| `AddonManagerCheckbox.lua` | Re-shows the Add-On Manager's enable checkbox once a problem dependency is merely disabled, not missing or too old |
 
 ## Quick start
 
@@ -621,7 +621,7 @@ LibAPH.RegisterAddonDependencies("MyAddonFolderName", { "SomeRequiredLib" }, { "
 
 `addonName` must match your manifest's real internal folder name (what `GetAddOnInfo` reports, not your display `## Title:`). No version numbers needed - `/libcheck` reads those live via `GetAddOnDependencyInfo`/`GetAddOnVersion` for whichever it can see. Call it once, from your own `EVENT_ADD_ON_LOADED` handler; nothing else to call afterward.
 
-`LibAPH_AutoEnableRequiredDeps.lua` and `LibAPH_AddonManagerTooltip.lua`/`LibAPH_AddonManagerCheckbox.lua` run automatically once loaded. The first enables an addon's real required dependencies whenever it's manually enabled, recursively through the chain; the other two extend the native Add-On Manager's tooltip and re-show its enable checkbox once a disabled-only dependency gets fixed.
+`AutoEnableRequiredDeps.lua` and `AddonManagerTooltip.lua`/`AddonManagerCheckbox.lua` run automatically once loaded. The first enables an addon's real required dependencies whenever it's manually enabled, recursively through the chain; the other two extend the native Add-On Manager's tooltip and re-show its enable checkbox once a disabled-only dependency gets fixed.
 
 ## Error capture
 
@@ -651,7 +651,7 @@ LibAPH.CheckSelfVersion(ALC.settings, ALC.version)
 
 ### `/libraryversioncheck`
 
-Prints every installed library's version next to `LibAPH_KnownLibraries.lua`'s recorded version: green for a match, cyan for newer, red for older.
+Prints every installed library's version next to `KnownLibraries.lua`'s recorded version: green for a match, cyan for newer, red for older.
 
 ### `/libcheck`
 
