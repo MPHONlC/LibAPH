@@ -37,8 +37,6 @@ Some of the utilities included:
 - ✓ Library/addon dependency and version checks
 - ✓ Error capture for bug reports
 
-Most components are independent and can be used without learning the rest of the library.
-
 ## License
 
 GNU General Public License v3.0 (GPLv3). Copyright 2026 @APHONlC.
