@@ -33,7 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - uses: MPHONlC/version-refresh@Version-0.0.2
+      - uses: MPHONlC/version-refresh@Version-0.0.3
         with:
           manifest_file: 'LibAPH.addon'
           field_name: 'AddOnVersion'
@@ -50,7 +50,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - uses: MPHONlC/eso-api-version-refresh@Version-0.0.1
+      - uses: MPHONlC/eso-api-version-refresh@Version-0.0.2
         with:
           manifest_file: 'LibAPH.addon'
           git_name: 'MPHONlC'
@@ -62,8 +62,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - uses: MPHONlC/changelog-date-check@Version-0.0.1
+      - uses: MPHONlC/changelog-check@Version-0.0.2
         with:
+          bbcode_file: 'CHANGELOG_BBCODE.txt'
           manifest_file: 'LibAPH.addon'
           bethesda_optional: true
 
@@ -83,7 +84,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - uses: MPHONlC/eso-slash-command-doc-check@Version-0.0.1
+      - uses: MPHONlC/eso-slash-command-doc-check@Version-0.0.2
         with:
           doc_files: |
             README_BBCODE.txt
@@ -153,14 +154,16 @@ jobs:
       - name: Compare changelog content across platforms
         if: always()
         continue-on-error: true
-        uses: MPHONlC/changelog-check@Version-0.0.1
+        uses: MPHONlC/changelog-check@Version-0.0.2
         with:
           bbcode_file: 'CHANGELOG_BBCODE.txt'
+          manifest_file: 'LibAPH.addon'
+          bethesda_optional: true
 
       - name: Compare description content across platforms
         if: always()
         continue-on-error: true
-        uses: MPHONlC/description-check@Version-0.0.1
+        uses: MPHONlC/description-check@Version-0.0.2
         with:
           bbcode_file: 'README_BBCODE.txt'
 
