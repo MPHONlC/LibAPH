@@ -27,14 +27,20 @@ jobs:
   api-version-refresh:
     needs: lua-check
     uses: ./.github/workflows/api-version-refresh.yml
+    permissions:
+      contents: write
 
   version-refresh:
     needs: api-version-refresh
     uses: ./.github/workflows/version-refresh.yml
+    permissions:
+      contents: write
 
   readme-badge-check:
     needs: version-refresh
     uses: ./.github/workflows/readme-badge-check.yml
+    permissions:
+      contents: write
 
   broken-link-check:
     needs: readme-badge-check
@@ -51,6 +57,8 @@ jobs:
   markdown-check:
     needs: description-check
     uses: ./.github/workflows/markdown-check.yml
+    permissions:
+      contents: write
 
   changelog-check:
     needs: markdown-check
