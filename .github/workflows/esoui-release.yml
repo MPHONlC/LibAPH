@@ -173,7 +173,7 @@ jobs:
         uses: m00nyONE/esoui-upload@main
         with:
           api_key: ${{ secrets.ESOUI_API_KEY }}
-          addon_id: '' # TODO: fill in once LibAPH has a real ESOUI addon page - see esoui.com upload page for the numeric ID
+          addon_id: ''
           version: ${{ steps.version.outputs.version }}
           zip_file: ${{ env.zip_file }}
           changelog_file: 'CHANGELOG_BBCODE.txt'
@@ -215,7 +215,7 @@ jobs:
         with:
           BNET_USERNAME: ${{ secrets.BNET_USERNAME }}
           BNET_PASSWORD: ${{ secrets.BNET_PASSWORD }}
-          addon_id: '' # TODO: fill in once APH provides LibAPH's real Bethesda addon_id (uploaded but not yet given)
+          addon_id: ''
           version: ${{ steps.version.outputs.display_version }}
           zip_file: ${{ env.zip_file }}
           release_notes_file: 'latest_changes_bethesda.txt'
@@ -295,7 +295,7 @@ jobs:
         uses: m00nyONE/esoui-upload@main
         with:
           api_key: ${{ secrets.ESOUI_API_KEY }}
-          addon_id: '' # TODO: fill in once LibAPH has a real ESOUI addon page - see esoui.com upload page for the numeric ID
+          addon_id: ''
           version: ${{ steps.version.outputs.version }}
           zip_file: ${{ env.zip_file }}
           changelog_file: 'CHANGELOG_BBCODE.txt'
@@ -336,7 +336,7 @@ jobs:
         with:
           BNET_USERNAME: ${{ secrets.BNET_USERNAME }}
           BNET_PASSWORD: ${{ secrets.BNET_PASSWORD }}
-          addon_id: '' # TODO: fill in once APH provides LibAPH's real Bethesda addon_id (uploaded but not yet given)
+          addon_id: ''
           version: ${{ steps.version.outputs.display_version }}
           zip_file: ${{ env.zip_file }}
           release_notes_file: 'latest_changes_bethesda.txt'

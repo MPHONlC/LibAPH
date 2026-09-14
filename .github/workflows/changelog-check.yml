@@ -21,6 +21,4 @@ jobs:
         with:
           bbcode_file: 'CHANGELOG_BBCODE.txt'
           manifest_file: 'LibAPH.addon'
-          # LibAPH has no Bethesda page yet - see esoui-release.yml's own blank
-          # Bethesda addon_id TODO for the same reason
           bethesda_optional: true
