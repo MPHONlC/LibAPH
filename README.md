@@ -11,6 +11,8 @@
 
 </div>
 
+## What is this?
+
 LibAPH is a helper library of convenience functionality used across my own addons: window building, gamepad support, player-busy checks, messaging, memory cleanup, a soft-disable module manager, localization, diagnostics, dependency/version checks, and error capture.
 
 It's installed as a standalone library/addon: drop the `LibAPH` folder into your `AddOns` directory. Load it in your own addon code via the global variable `LibAPH`:
@@ -36,6 +38,11 @@ Some of the utilities included:
 - ✓ LAM2 submenu-state and label-refresh helpers
 - ✓ Library/addon dependency and version checks
 - ✓ Error capture for bug reports
+
+## Slash Commands
+
+- `/libraryversioncheck`: prints every installed library's version next to the library's own recorded version: green for a match, cyan for newer, red for older.
+- `/libcheck`: scans every enabled addon's declared library dependencies, offers to enable optional libraries an addon can use but currently has switched off, or to disable any enabled library nothing currently references, then reloads and reports the result via chat.
 
 ## License
 

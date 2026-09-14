@@ -30,7 +30,10 @@ Some of the utilities included:
 - ✓ Library/addon dependency and version checks
 - ✓ Error capture for bug reports
 
-Most components are independent and can be used without learning the rest of the library.
+## Slash Commands
+
+- `/libraryversioncheck`: prints every installed library's version next to the library's own recorded version: green for a match, cyan for newer, red for older.
+- `/libcheck`: scans every enabled addon's declared library dependencies, offers to enable optional libraries an addon can use but currently has switched off, or to disable any enabled library nothing currently references, then reloads and reports the result via chat.
 
 ## License
 
