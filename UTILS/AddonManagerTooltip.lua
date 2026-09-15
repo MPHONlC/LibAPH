@@ -91,7 +91,9 @@ local function OnAddonManagerRowMouseEnter(control)
 	local am = GetAddOnManager()
 	local optional_libs = LibAPH.GetOptionalLibsFor(data.addOnFileName)
 
-	InitializeTooltip(ItemTooltip, control, TOPLEFT, 0, 0, TOPRIGHT)
+	local manager_window = ZO_AddOns or control:GetParent()
+	local edge_offset = manager_window:GetRight() - control:GetRight()
+	InitializeTooltip(ItemTooltip, control, TOPLEFT, edge_offset, 0, TOPRIGHT)
 	AddTitleLine(ItemTooltip, data.addOnName)
 	if data.index then
 		local ver = am:GetAddOnVersion(data.index)
