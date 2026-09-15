@@ -5,6 +5,21 @@
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
 assert(LibAPH.KnownLibraries, "KnownLibraries.lua must be loaded before this file")
 
+local library_version_window
+
+local function GetLibraryVersionWindow()
+	if library_version_window then return library_version_window end
+	library_version_window = LibAPH.CreateScrollListWindow({
+		name = "LibAPH_LibraryVersionWindow",
+		widthPct = 0.3, heightPct = 0.5,
+		minWidth = 420, maxWidth = 760,
+		minHeight = 360, maxHeight = 720,
+		footerHeight = 20,
+		titleText = "|c9CD04CLibAPH|r Library Version Check",
+	})
+	return library_version_window
+end
+
 SLASH_COMMANDS["/libraryversioncheck"] = function()
 	local names = {}
 	for key in pairs(LibAPH.KnownLibraries) do
@@ -12,21 +27,24 @@ SLASH_COMMANDS["/libraryversioncheck"] = function()
 	end
 	table.sort(names)
 
-	local found_any = false
+	local rows = {}
 	for _, key in ipairs(names) do
 		local libData = LibAPH.KnownLibraries[key]
 		local ver = LibAPH.CheckLibraryVersion(key)
 		if ver > 0 then
-			if not found_any then
-				d("|c9CD04C[LibAPH]|r Installed library versions (compared to this table's own recorded version):")
-				found_any = true
-			end
 			local color, plus, label = LibAPH.GetLibraryDriftColor(ver, libData.requiredVersion)
-			d(string.format("  %s: %sv%d%s%s|r", libData.fullName, color, ver, plus, label))
+			table.insert(rows, { text = string.format("%s: %sv%d%s%s|r", libData.fullName, color, ver, plus, label) })
 		end
 	end
 
-	if not found_any then
+	if #rows == 0 then
 		d("|c9CD04C[LibAPH]|r None of the libraries in this table are currently installed.")
+		return
 	end
+
+	table.insert(rows, 1, { text = "Installed library versions (compared to this table's own recorded version)", is_header = true })
+
+	local win = GetLibraryVersionWindow()
+	win:SetRows(rows)
+	win:Show()
 end
