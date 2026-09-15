@@ -266,20 +266,24 @@ local function GetOptionalLibraryWindow()
 	action_lbl:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
 	optional_library_window.action_lbl = action_lbl
 
-	local function MakeButton(text, color, anchorPoint, relativePoint, offsetX)
-		local btn = WINDOW_MANAGER:CreateControl(nil, optional_library_window.footer, CT_LABEL)
-		btn:SetFont("ZoFontWinH4")
-		btn:SetColor(unpack(color))
-		btn:SetText(text)
-		btn:SetAnchor(anchorPoint, optional_library_window.footer, relativePoint, offsetX, 24)
-		btn:SetMouseEnabled(true)
-		LibAPH.AddButtonHoverEffects(btn, color)
-		return btn
-	end
+	optional_library_window.check_all_btn = LibAPH.CreateKeybindLabelButton(optional_library_window.footer, {
+		keybind = "UI_SHORTCUT_TERTIARY",
+		name = "Select All",
+	})
+	optional_library_window.check_all_btn:SetAnchor(TOPLEFT, optional_library_window.footer, TOPLEFT, 0, 24)
 
-	optional_library_window.apply_btn = MakeButton("Apply Changes", { 0.4, 1, 0.4, 1 }, TOPRIGHT, TOPRIGHT, 0)
-	optional_library_window.uncheck_all_btn = MakeButton("Uncheck All", { 0.85, 0.85, 0.85, 1 }, TOPLEFT, TOPLEFT, 90)
-	optional_library_window.check_all_btn = MakeButton("Check All", { 0.85, 0.85, 0.85, 1 }, TOPLEFT, TOPLEFT, 0)
+	optional_library_window.uncheck_all_btn = LibAPH.CreateKeybindLabelButton(optional_library_window.footer, {
+		keybind = "UI_SHORTCUT_SECONDARY",
+		name = "Deselect All",
+	})
+	optional_library_window.uncheck_all_btn:SetAnchor(TOPLEFT, optional_library_window.check_all_btn, TOPRIGHT, 20, 0)
+
+	optional_library_window.apply_btn = LibAPH.CreateKeybindLabelButton(optional_library_window.footer, {
+		keybind = "GAME_CAMERA_INTERACT",
+		gamepadPreferredKeybind = "GAMEPAD_JUMP_OR_INTERACT",
+		name = "Apply Changes",
+	})
+	optional_library_window.apply_btn:SetAnchor(TOPRIGHT, optional_library_window.footer, TOPRIGHT, 0, 24)
 
 	return optional_library_window
 end
