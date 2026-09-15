@@ -152,7 +152,7 @@ end
 function LibAPH.CreateCopyTextBox(opts)
 	opts = opts or {}
 	local win = WINDOW_MANAGER:CreateControl(opts.name, GuiRoot, CT_TOPLEVELCONTROL)
-	win:SetDimensions(600, 340)
+	win:SetDimensions(600, 380)
 	win:SetAnchor(CENTER, GuiRoot, CENTER, 0, 0)
 	win:SetDrawTier(DT_HIGH)
 	win:SetDrawLayer(DL_OVERLAY)
@@ -165,37 +165,216 @@ function LibAPH.CreateCopyTextBox(opts)
 	local bg = WINDOW_MANAGER:CreateControlFromVirtual(opts.name .. "BG", win, "ZO_DefaultBackdrop")
 	bg:SetAnchorFill(win)
 
-	local close_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
-	close_lbl:SetFont("ZoFontWinH4")
-	close_lbl:SetColor(1, 0.3, 0.3, 1)
-	close_lbl:SetText(opts.closeText or "Close")
-	close_lbl:SetAnchor(TOPRIGHT, win, TOPRIGHT, -10, 8)
-	close_lbl:SetMouseEnabled(true)
-	close_lbl:SetHandler("OnMouseUp", function() win:SetHidden(true) end)
+	local close_btn = WINDOW_MANAGER:CreateControlFromVirtual(nil, win, "ZO_CloseButton")
+	close_btn:SetAnchor(TOPRIGHT, win, TOPRIGHT, -8, 8)
+	close_btn:SetHandler("OnClicked", function()
+		win:SetHidden(true)
+		if opts.onClose then opts.onClose() end
+	end)
 
 	local title_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
 	title_lbl:SetFont("ZoFontGameBold")
 	title_lbl:SetColor(1, 1, 1, 1)
 	title_lbl:SetText(opts.titleText or "")
 	title_lbl:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 12)
+	title_lbl:SetAnchor(TOPRIGHT, close_btn, TOPLEFT, -10, 0)
+	title_lbl:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
+
+	local copy_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
+	copy_lbl:SetFont("ZoFontWinH5")
+	copy_lbl:SetColor(0.4, 1, 0.4, 1)
+	copy_lbl:SetText(opts.copyText or "Select All")
+	copy_lbl:SetAnchor(TOPRIGHT, close_btn, BOTTOMRIGHT, 0, 10)
+	copy_lbl:SetMouseEnabled(true)
+
+	local dev_lbl
+	if opts.devButton then
+		dev_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
+		dev_lbl:SetFont("ZoFontWinH5")
+		dev_lbl:SetColor(1, 0.65, 0, 1)
+		dev_lbl:SetText(opts.devButton.text or "Simulate Error")
+		dev_lbl:SetAnchor(TOPRIGHT, copy_lbl, BOTTOMRIGHT, 0, 8)
+		dev_lbl:SetMouseEnabled(true)
+		LibAPH.AddButtonHoverEffects(dev_lbl, { 1, 0.65, 0, 1 })
+		dev_lbl.libaph_click_action = opts.devButton.onClick
+	end
+
+	local search_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
+	search_lbl:SetFont("ZoFontGameSmall")
+	search_lbl:SetColor(0.8, 0.8, 0.8, 1)
+	search_lbl:SetText(opts.searchLabel or "Search:")
+	search_lbl:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 48)
+
+	local search_bg = WINDOW_MANAGER:CreateControlFromVirtual(nil, win, "ZO_EditBackdrop")
+	search_bg:SetAnchor(TOPLEFT, search_lbl, TOPRIGHT, 8, -5)
+	search_bg:SetDimensions(200, 24)
+
+	local search_box = WINDOW_MANAGER:CreateControlFromVirtual(nil, search_bg, "ZO_DefaultEdit")
+	search_box:SetAnchor(TOPLEFT, search_bg, TOPLEFT, 6, 2)
+	search_box:SetAnchor(BOTTOMRIGHT, search_bg, BOTTOMRIGHT, -6, -2)
+	search_box:SetFont("ZoFontGameSmall")
+
+	local status_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
+	status_lbl:SetFont("ZoFontGameSmall")
+	status_lbl:SetColor(0.7, 0.7, 0.7, 1)
+	status_lbl:SetAnchor(TOPLEFT, search_bg, TOPRIGHT, 10, 5)
+	status_lbl:SetText("")
 
 	local edit_bg = WINDOW_MANAGER:CreateControl(nil, win, CT_BACKDROP)
-	edit_bg:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 45)
+	edit_bg:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 80)
 	edit_bg:SetAnchor(BOTTOMRIGHT, win, BOTTOMRIGHT, -15, -15)
 	edit_bg:SetCenterColor(0, 0, 0, 0.35)
 	edit_bg:SetEdgeColor(0, 0, 0, 0)
 
 	local eb = WINDOW_MANAGER:CreateControlFromVirtual(nil, edit_bg, "ZO_DefaultEditMultiLineForBackdrop")
-	eb:SetAnchorFill(edit_bg)
+	eb:SetAnchor(TOPLEFT, edit_bg, TOPLEFT, 0, 0)
+	eb:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -12, 0)
 	eb:SetMaxInputChars(opts.maxInputChars or 4000)
+
+	local scroll_track = WINDOW_MANAGER:CreateControl(nil, edit_bg, CT_BACKDROP)
+	scroll_track:SetDimensions(6, 1)
+	scroll_track:SetAnchor(TOPRIGHT, edit_bg, TOPRIGHT, -2, 4)
+	scroll_track:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -2, -4)
+	scroll_track:SetCenterColor(0, 0, 0, 0.5)
+	scroll_track:SetEdgeColor(0, 0, 0, 0)
+
+	local scroll_thumb = WINDOW_MANAGER:CreateControl(nil, scroll_track, CT_BACKDROP)
+	scroll_thumb:SetWidth(6)
+	scroll_thumb:SetCenterColor(0.55, 0.55, 0.55, 0.9)
+	scroll_thumb:SetEdgeColor(0, 0, 0, 0)
+
+	local function update_scrollbar()
+		local extents = eb:GetScrollExtents()
+		if extents <= 0 then
+			scroll_thumb:SetHidden(true)
+			return
+		end
+		scroll_thumb:SetHidden(false)
+		local track_height = scroll_track:GetHeight()
+		local thumb_height = zo_clamp(track_height / (extents + 1), 16, track_height)
+		local travel = zo_max(0, track_height - thumb_height)
+		local frac = (eb:GetTopLineIndex() - 1) / zo_max(1, extents)
+		scroll_thumb:SetHeight(thumb_height)
+		scroll_thumb:ClearAnchors()
+		scroll_thumb:SetAnchor(TOPLEFT, scroll_track, TOPLEFT, 0, travel * frac)
+	end
+	ZO_PostHookHandler(eb, "OnMouseWheel", update_scrollbar)
 
 	local strip = opts.stripColors or LibAPH.StripColors
 	local box = { window = win, editbox = eb }
-	function box:Show(plain_text)
-		eb:SetText(strip(plain_text))
-		win:SetHidden(false)
+	local plain_text, lower_text = "", ""
+	local search_pos = 1
+
+	local function count_matches(needle_lower)
+		if needle_lower == "" then return 0 end
+		local count, pos = 0, 1
+		while true do
+			local s = string.find(lower_text, needle_lower, pos, true)
+			if not s then break end
+			count = count + 1
+			pos = s + 1
+		end
+		return count
+	end
+
+	local function match_index(needle_lower, match_start)
+		local count, pos = 0, 1
+		while true do
+			local s = string.find(lower_text, needle_lower, pos, true)
+			if not s then break end
+			count = count + 1
+			if s == match_start then return count end
+			pos = s + 1
+		end
+		return count
+	end
+
+	local function jump_to(match_start, match_end)
+		eb:SetCursorPosition(match_start - 1)
+		eb:SetSelection(match_start - 1, match_end)
+		local line = 1
+		for _ in string.gmatch(string.sub(plain_text, 1, match_start), "\n") do
+			line = line + 1
+		end
+		local target_line = zo_clamp(zo_max(1, line - 2), 1, eb:GetScrollExtents() + 1)
+		eb:SetTopLineIndex(target_line)
+		update_scrollbar()
+	end
+
+	local function do_search(forward)
+		local needle = search_box:GetText()
+		if needle == "" then
+			status_lbl:SetText("")
+			return
+		end
+		local needle_lower = string.lower(needle)
+		local total = count_matches(needle_lower)
+		if total == 0 then
+			status_lbl:SetColor(1, 0.4, 0.4, 1)
+			status_lbl:SetText(opts.noMatchesText or "No matches")
+			return
+		end
+
+		local match_start, match_end
+		if forward then
+			match_start, match_end = string.find(lower_text, needle_lower, search_pos, true)
+			if not match_start then
+				match_start, match_end = string.find(lower_text, needle_lower, 1, true)
+			end
+		else
+			local pos, last_s, last_e = 1, nil, nil
+			while true do
+				local s, e = string.find(lower_text, needle_lower, pos, true)
+				if not s or s >= search_pos then break end
+				last_s, last_e = s, e
+				pos = s + 1
+			end
+			if not last_s then
+				pos = 1
+				while true do
+					local s, e = string.find(lower_text, needle_lower, pos, true)
+					if not s then break end
+					last_s, last_e = s, e
+					pos = s + 1
+				end
+			end
+			match_start, match_end = last_s, last_e
+		end
+
+		if match_start then
+			jump_to(match_start, match_end)
+			search_pos = forward and (match_end + 1) or match_start
+			status_lbl:SetColor(0.6, 1, 0.6, 1)
+			status_lbl:SetText(string.format("%d/%d", match_index(needle_lower, match_start), total))
+		end
+	end
+
+	search_box:SetHandler("OnTextChanged", function()
+		search_pos = 1
+	end)
+	search_box:SetHandler("OnEnter", function()
+		do_search(not IsShiftKeyDown())
+	end)
+
+	LibAPH.AddButtonHoverEffects(copy_lbl, { 0.4, 1, 0.4, 1 })
+	copy_lbl.libaph_click_action = function()
 		eb:SelectAll()
 		eb:TakeFocus()
+	end
+
+	function box:Show(text)
+		plain_text = strip(text)
+		lower_text = string.lower(plain_text)
+		search_pos = 1
+		search_box:SetText("")
+		status_lbl:SetText("")
+		eb:SetText(plain_text)
+		win:SetHidden(false)
+		eb:SetCursorPosition(0)
+		eb:SetTopLineIndex(1)
+		eb:SelectAll()
+		eb:TakeFocus()
+		update_scrollbar()
 	end
 	return box
 end
@@ -226,6 +405,21 @@ function LibAPH.AddButtonHoverEffects(control, baseColor)
 			if self.libaph_click_action then self.libaph_click_action() end
 		end
 	end)
+end
+
+function LibAPH.CreateKeybindLabelButton(parent, opts)
+	opts = opts or {}
+	local btn = WINDOW_MANAGER:CreateControlFromVirtual(nil, parent, "ZO_KeybindButton")
+	btn:SetKeybindButtonDescriptor({
+		keybind = opts.keybind,
+		gamepadPreferredKeybind = opts.gamepadPreferredKeybind,
+		name = opts.name or "",
+		callback = function(...)
+			if btn.libaph_click_action then btn.libaph_click_action(...) end
+		end,
+	})
+	btn.libaph_click_action = opts.callback
+	return btn
 end
 
 function LibAPH.CreateScrollListWindow(opts)
