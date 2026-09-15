@@ -151,8 +151,9 @@ end
 
 function LibAPH.CreateCopyTextBox(opts)
 	opts = opts or {}
+	local footer_h = (opts.dismissBug or opts.wipeAllBugs) and 34 or 0
 	local win = WINDOW_MANAGER:CreateControl(opts.name, GuiRoot, CT_TOPLEVELCONTROL)
-	win:SetDimensions(600, 380)
+	win:SetDimensions(600, 380 + footer_h)
 	win:SetAnchor(CENTER, GuiRoot, CENTER, 0, 0)
 	win:SetDrawTier(DT_HIGH)
 	win:SetDrawLayer(DL_OVERLAY)
@@ -220,21 +221,19 @@ function LibAPH.CreateCopyTextBox(opts)
 	status_lbl:SetAnchor(TOPLEFT, search_bg, TOPRIGHT, 10, 5)
 	status_lbl:SetText("")
 
-	local edit_bg = WINDOW_MANAGER:CreateControl(nil, win, CT_BACKDROP)
+	local edit_bg = WINDOW_MANAGER:CreateControlFromVirtual(nil, win, "ZO_MultiLineEditBackdrop_Keyboard")
 	edit_bg:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 80)
-	edit_bg:SetAnchor(BOTTOMRIGHT, win, BOTTOMRIGHT, -15, -15)
-	edit_bg:SetCenterColor(0, 0, 0, 0.35)
-	edit_bg:SetEdgeColor(0, 0, 0, 0)
+	edit_bg:SetAnchor(BOTTOMRIGHT, win, BOTTOMRIGHT, -15, -(15 + footer_h))
 
 	local eb = WINDOW_MANAGER:CreateControlFromVirtual(nil, edit_bg, "ZO_DefaultEditMultiLineForBackdrop")
-	eb:SetAnchor(TOPLEFT, edit_bg, TOPLEFT, 0, 0)
-	eb:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -12, 0)
+	eb:SetAnchor(TOPLEFT, edit_bg, TOPLEFT, 8, 8)
+	eb:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -20, -8)
 	eb:SetMaxInputChars(opts.maxInputChars or 4000)
 
 	local scroll_track = WINDOW_MANAGER:CreateControl(nil, edit_bg, CT_BACKDROP)
 	scroll_track:SetDimensions(6, 1)
-	scroll_track:SetAnchor(TOPRIGHT, edit_bg, TOPRIGHT, -2, 4)
-	scroll_track:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -2, -4)
+	scroll_track:SetAnchor(TOPRIGHT, edit_bg, TOPRIGHT, -10, 12)
+	scroll_track:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -10, -12)
 	scroll_track:SetCenterColor(0, 0, 0, 0.5)
 	scroll_track:SetEdgeColor(0, 0, 0, 0)
 
@@ -360,6 +359,34 @@ function LibAPH.CreateCopyTextBox(opts)
 	copy_lbl.libaph_click_action = function()
 		eb:SelectAll()
 		eb:TakeFocus()
+	end
+
+	if opts.dismissBug then
+		local dismiss_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
+		dismiss_lbl:SetFont("ZoFontWinH5")
+		dismiss_lbl:SetColor(1, 0.55, 0.55, 1)
+		dismiss_lbl:SetText(opts.dismissBug.text or "Dismiss Bug")
+		dismiss_lbl:SetAnchor(BOTTOMLEFT, win, BOTTOMLEFT, 15, -14)
+		dismiss_lbl:SetMouseEnabled(true)
+		LibAPH.AddButtonHoverEffects(dismiss_lbl, { 1, 0.55, 0.55, 1 })
+		dismiss_lbl.libaph_click_action = opts.dismissBug.onClick
+		box.dismiss_lbl = dismiss_lbl
+	end
+
+	if opts.wipeAllBugs then
+		local wipe_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
+		wipe_lbl:SetFont("ZoFontWinH5")
+		wipe_lbl:SetColor(1, 0.55, 0.55, 1)
+		wipe_lbl:SetText(opts.wipeAllBugs.text or "Wipe All Bugs")
+		wipe_lbl:SetAnchor(BOTTOMRIGHT, win, BOTTOMRIGHT, -15, -14)
+		wipe_lbl:SetMouseEnabled(true)
+		LibAPH.AddButtonHoverEffects(wipe_lbl, { 1, 0.55, 0.55, 1 })
+		wipe_lbl.libaph_click_action = opts.wipeAllBugs.onClick
+		box.wipe_lbl = wipe_lbl
+	end
+
+	function box:Hide()
+		win:SetHidden(true)
 	end
 
 	function box:Show(text)
