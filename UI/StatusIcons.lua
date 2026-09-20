@@ -33,6 +33,10 @@ local function OnStatusIconMouseExit(icon)
 	ClearTooltip(InformationTooltip)
 end
 
+local function OnStatusIconClicked(icon)
+	if icon.libaph_on_click then icon.libaph_on_click(icon) end
+end
+
 function LibAPH.CreateStatusIconStrip(parentControl, selfHandled, slots, size)
 	local icons = {}
 	size = size or STATUS_ICON_SIZE
@@ -53,6 +57,7 @@ function LibAPH.CreateStatusIconStrip(parentControl, selfHandled, slots, size)
 		if selfHandled then
 			hitbox:SetHandler("OnMouseEnter", OnStatusIconMouseEnter)
 			hitbox:SetHandler("OnMouseExit", OnStatusIconMouseExit)
+			hitbox:SetHandler("OnClicked", OnStatusIconClicked)
 		end
 
 		icons[i] = hitbox
@@ -71,6 +76,7 @@ function LibAPH.UpdateStatusIconStrip(icons, anchorControl, statusIcons, growLef
 			icon.libaph_base_color = entry.color
 			icon.icon_texture:SetColor(entry.color[1], entry.color[2], entry.color[3], 1)
 			icon.libaph_tooltip_text = entry.tooltip
+			icon.libaph_on_click = entry.onClick
 			icon:ClearAnchors()
 			if growLeftward then
 				if slot == 1 then
