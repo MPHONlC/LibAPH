@@ -12,3 +12,6 @@ README_COMMONMARK.txt
 CHANGELOG_BBCODE.txt
 CHANGELOG_GFM.txt
 CHANGELOG_COMMONMARK.txt
+Is-Everything-Up-To-Date.sh
+Is-Everything-Up-To-Date.ps1
+merge-known-tables.awk
