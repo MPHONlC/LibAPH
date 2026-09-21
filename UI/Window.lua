@@ -214,64 +214,9 @@ function LibAPH.ConfirmOpenPastebin(win)
 	end)
 end
 
-local SCROLL_THUMB_COLOR = { 0.55, 0.55, 0.55, 0.9 }
-local SCROLL_THUMB_HOVER_COLOR = { 0.8, 0.8, 0.8, 1 }
-
-function LibAPH.MakeScrollThumbDraggable(track, thumb, opts)
-	track:SetMouseEnabled(true)
-	thumb:SetMouseEnabled(true)
-	thumb:SetHitInsets(-6, -2, 6, 2)
-	track:SetHitInsets(-6, 0, 6, 0)
-	local drag_start_y, drag_start_line, dragging
-
-	local function Travel()
-		return zo_max(1, track:GetHeight() - thumb:GetHeight())
-	end
-
-	local function OnDragUpdate()
-		local extents = opts.getExtents()
-		if extents <= 0 then return end
-		local _, cursor_y = GetUIMousePosition()
-		local line = drag_start_line + (cursor_y - drag_start_y) / Travel() * extents
-		opts.setTopLine(zo_clamp(zo_round(line), 1, extents + 1))
-		opts.onScrolled()
-	end
-
-	local function StartDrag()
-		local _, cursor_y = GetUIMousePosition()
-		drag_start_y, drag_start_line, dragging = cursor_y, opts.getTopLine(), true
-		thumb:SetCenterColor(unpack(SCROLL_THUMB_HOVER_COLOR))
-		thumb:SetHandler("OnUpdate", OnDragUpdate)
-	end
-
-	local function StopDrag()
-		dragging = false
-		thumb:SetHandler("OnUpdate", nil)
-		thumb:SetCenterColor(unpack(SCROLL_THUMB_COLOR))
-	end
-
-	thumb:SetHandler("OnMouseEnter", function() thumb:SetCenterColor(unpack(SCROLL_THUMB_HOVER_COLOR)) end)
-	thumb:SetHandler("OnMouseExit", function() if not dragging then thumb:SetCenterColor(unpack(SCROLL_THUMB_COLOR)) end end)
-	thumb:SetHandler("OnMouseDown", function(_, button)
-		if button == MOUSE_BUTTON_INDEX_LEFT then StartDrag() end
-	end)
-	thumb:SetHandler("OnMouseUp", function(_, button)
-		if button == MOUSE_BUTTON_INDEX_LEFT then StopDrag() end
-	end)
-	track:SetHandler("OnMouseDown", function(_, button)
-		if button ~= MOUSE_BUTTON_INDEX_LEFT then return end
-		local extents = opts.getExtents()
-		if extents <= 0 then return end
-		local _, cursor_y = GetUIMousePosition()
-		local frac = zo_clamp((cursor_y - track:GetTop() - thumb:GetHeight() / 2) / Travel(), 0, 1)
-		opts.setTopLine(zo_round(frac * extents) + 1)
-		opts.onScrolled()
-		StartDrag()
-	end)
-	track:SetHandler("OnMouseUp", function(_, button)
-		if button == MOUSE_BUTTON_INDEX_LEFT then StopDrag() end
-	end)
-end
+local COPY_BOX_TEXT_ROW = 1
+local COPY_BOX_WHEEL_STEP = 60
+local COPY_BOX_SCROLLBAR_SPACE = 24
 
 function LibAPH.CreateCopyTextBox(opts)
 	opts = opts or {}
@@ -358,50 +303,44 @@ function LibAPH.CreateCopyTextBox(opts)
 	edit_bg:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 80)
 	edit_bg:SetAnchor(BOTTOMRIGHT, win, BOTTOMRIGHT, -15, -(15 + footer_h))
 
-	local eb = WINDOW_MANAGER:CreateControlFromVirtual(nil, edit_bg, "ZO_DefaultEditMultiLineForBackdrop")
-	eb:SetAnchor(TOPLEFT, edit_bg, TOPLEFT, 8, 8)
-	eb:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -20, -8)
+	local text_list = WINDOW_MANAGER:CreateControlFromVirtual(opts.name .. "TextList", edit_bg, "ZO_ScrollList")
+	text_list:SetAnchor(TOPLEFT, edit_bg, TOPLEFT, 8, 8)
+	text_list:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -8, -8)
+
+	local eb = WINDOW_MANAGER:CreateControlFromVirtual(nil, text_list.contents, "ZO_DefaultEditMultiLineForBackdrop")
 	eb:SetMaxInputChars(opts.maxInputChars or 4000)
+	eb:SetHandler("OnMouseWheel", function(_, delta)
+		ZO_ScrollList_ScrollRelative(text_list, -delta * COPY_BOX_WHEEL_STEP)
+	end)
 
-	local scroll_track = WINDOW_MANAGER:CreateControl(nil, edit_bg, CT_BACKDROP)
-	scroll_track:SetDimensions(6, 1)
-	scroll_track:SetAnchor(TOPRIGHT, edit_bg, TOPRIGHT, -10, 12)
-	scroll_track:SetAnchor(BOTTOMRIGHT, edit_bg, BOTTOMRIGHT, -10, -12)
-	scroll_track:SetCenterColor(0, 0, 0, 0.5)
-	scroll_track:SetEdgeColor(0, 0, 0, 0)
+	local measure = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
+	measure:SetAlpha(0)
+	measure:SetMouseEnabled(false)
+	measure:SetAnchor(TOPLEFT, win, TOPLEFT, 0, 0)
 
-	local scroll_thumb = WINDOW_MANAGER:CreateControl(nil, scroll_track, CT_BACKDROP)
-	scroll_thumb:SetWidth(6)
-	scroll_thumb:SetCenterColor(0.55, 0.55, 0.55, 0.9)
-	scroll_thumb:SetEdgeColor(0, 0, 0, 0)
+	ZO_ScrollList_AddDataType(text_list, COPY_BOX_TEXT_ROW, "LibAPH_ScrollListTextRow", 30, function(row)
+		eb:SetParent(row)
+		eb:ClearAnchors()
+		eb:SetAnchorFill(row)
+	end)
 
-	local function update_scrollbar()
-		local extents = eb:GetScrollExtents()
-		if extents <= 0 then
-			scroll_thumb:SetHidden(true)
-			return
-		end
-		scroll_thumb:SetHidden(false)
-		local track_height = scroll_track:GetHeight()
-		local thumb_height = zo_clamp(track_height / (extents + 1), 16, track_height)
-		local travel = zo_max(0, track_height - thumb_height)
-		local frac = (eb:GetTopLineIndex() - 1) / zo_max(1, extents)
-		scroll_thumb:SetHeight(thumb_height)
-		scroll_thumb:ClearAnchors()
-		scroll_thumb:SetAnchor(TOPLEFT, scroll_track, TOPLEFT, 0, travel * frac)
+	local layout_text = ""
+	local function relayout()
+		local text_width = zo_max(50, text_list:GetWidth() - COPY_BOX_SCROLLBAR_SPACE)
+		measure:SetFont(eb:GetFont())
+		measure:SetWidth(text_width)
+		measure:SetText(layout_text)
+		local text_height = measure:GetTextHeight() + eb:GetFontHeight() * 2
+		ZO_ScrollList_UpdateDataTypeHeight(text_list, COPY_BOX_TEXT_ROW, text_height)
+		ZO_ScrollList_Clear(text_list)
+		local data_list = ZO_ScrollList_GetDataList(text_list)
+		data_list[1] = ZO_ScrollList_CreateDataEntry(COPY_BOX_TEXT_ROW, {})
+		ZO_ScrollList_Commit(text_list)
 	end
-	ZO_PostHookHandler(eb, "OnMouseWheel", update_scrollbar)
-	LibAPH.MakeScrollThumbDraggable(scroll_track, scroll_thumb, {
-		getExtents = function() return eb:GetScrollExtents() end,
-		getTopLine = function() return eb:GetTopLineIndex() end,
-		setTopLine = function(line) eb:SetTopLineIndex(line) end,
-		onScrolled = update_scrollbar,
-	})
 
 	LibAPH.MakeWindowResizable(win, {
 		minWidth = 400, minHeight = 300, maxWidth = 1200, maxHeight = 900,
-		onResizing = update_scrollbar,
-		onResizeStop = update_scrollbar,
+		onResizeStop = relayout,
 	})
 
 	local strip = opts.stripColors or LibAPH.StripColors
@@ -440,9 +379,7 @@ function LibAPH.CreateCopyTextBox(opts)
 		for _ in string.gmatch(string.sub(plain_text, 1, match_start), "\n") do
 			line = line + 1
 		end
-		local target_line = zo_clamp(zo_max(1, line - 2), 1, eb:GetScrollExtents() + 1)
-		eb:SetTopLineIndex(target_line)
-		update_scrollbar()
+		ZO_ScrollList_ScrollAbsolute(text_list, zo_max(0, (line - 3) * eb:GetFontHeight()))
 	end
 
 	local function do_search(forward)
@@ -542,15 +479,16 @@ function LibAPH.CreateCopyTextBox(opts)
 		search_box:SetText("")
 		status_lbl:SetText("")
 		eb:SetText(plain_text)
+		layout_text = plain_text
 		win:SetHidden(false)
 		if not SCENE_MANAGER:IsInUIMode() then
 			SCENE_MANAGER:SetInUIMode(true)
 		end
+		relayout()
+		ZO_ScrollList_ResetToTop(text_list)
 		eb:SetCursorPosition(0)
-		eb:SetTopLineIndex(1)
 		eb:SelectAll()
 		eb:TakeFocus()
-		update_scrollbar()
 	end
 	return box
 end

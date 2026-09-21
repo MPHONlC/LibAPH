@@ -1,0 +1,5 @@
+<GuiXml>
+    <Controls>
+        <Control name="LibAPH_ScrollListTextRow" virtual="true" mouseEnabled="true"/>
+    </Controls>
+</GuiXml>
