@@ -1,0 +1,30 @@
+<Bindings>
+    <Layer name="LibAPH_KeybindButtons">
+        <Category>
+            <Action name="LIBAPH_KEYBIND_PRIMARY" hideAction="true" inheritsBindFrom="UI_SHORTCUT_PRIMARY">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_PRIMARY")</Down>
+            </Action>
+            <Action name="LIBAPH_KEYBIND_SECONDARY" hideAction="true" inheritsBindFrom="UI_SHORTCUT_SECONDARY">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_SECONDARY")</Down>
+            </Action>
+            <Action name="LIBAPH_KEYBIND_TERTIARY" hideAction="true" inheritsBindFrom="UI_SHORTCUT_TERTIARY">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_TERTIARY")</Down>
+            </Action>
+            <Action name="LIBAPH_KEYBIND_QUATERNARY" hideAction="true" inheritsBindFrom="UI_SHORTCUT_QUATERNARY">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_QUATERNARY")</Down>
+            </Action>
+            <Action name="LIBAPH_KEYBIND_QUINARY" hideAction="true" inheritsBindFrom="UI_SHORTCUT_QUINARY">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_QUINARY")</Down>
+            </Action>
+            <Action name="LIBAPH_KEYBIND_NEGATIVE" hideAction="true" inheritsBindFrom="UI_SHORTCUT_NEGATIVE">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_NEGATIVE")</Down>
+            </Action>
+            <Action name="LIBAPH_KEYBIND_QUICK_SLOTS" hideAction="true" inheritsBindFrom="UI_SHORTCUT_QUICK_SLOTS">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_QUICK_SLOTS")</Down>
+            </Action>
+            <Action name="LIBAPH_KEYBIND_SHOW_QUEST_ON_MAP" hideAction="true" inheritsBindFrom="UI_SHORTCUT_SHOW_QUEST_ON_MAP">
+                <Down>return LibAPH.HandleKeybindButtonKey("UI_SHORTCUT_SHOW_QUEST_ON_MAP")</Down>
+            </Action>
+        </Category>
+    </Layer>
+</Bindings>

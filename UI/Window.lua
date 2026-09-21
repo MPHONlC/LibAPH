@@ -517,6 +517,42 @@ function LibAPH.AddGhostText(editBox, ghostText)
 	return ghost
 end
 
+local KEYBIND_BUTTON_LAYER = "LibAPH_KeybindButtons"
+local keybind_buttons = {}
+local keybind_windows = {}
+local shown_keybind_windows = {}
+
+local function SetKeybindWindowShown(win, shown)
+	if (shown_keybind_windows[win] == true) == shown then return end
+	shown_keybind_windows[win] = shown or nil
+	local any_shown = next(shown_keybind_windows) ~= nil
+	local active = IsActionLayerActiveByName(KEYBIND_BUTTON_LAYER)
+	if any_shown and not active then
+		PushActionLayerByName(KEYBIND_BUTTON_LAYER)
+	elseif not any_shown and active then
+		RemoveActionLayerByName(KEYBIND_BUTTON_LAYER)
+	end
+end
+
+local function TrackKeybindWindow(btn)
+	local win = btn:GetOwningWindow()
+	if not win or keybind_windows[win] then return end
+	keybind_windows[win] = true
+	ZO_PostHookHandler(win, "OnShow", function() SetKeybindWindowShown(win, true) end)
+	ZO_PostHookHandler(win, "OnHide", function() SetKeybindWindowShown(win, false) end)
+	if not win:IsHidden() then SetKeybindWindowShown(win, true) end
+end
+
+function LibAPH.HandleKeybindButtonKey(keybind)
+	for _, btn in ipairs(keybind_buttons) do
+		if btn.libaph_keybind == keybind and btn.libaph_click_action and not btn:IsControlHidden() and btn:IsEnabled() ~= false then
+			btn.libaph_click_action(btn)
+			return true
+		end
+	end
+	return false
+end
+
 function LibAPH.CreateKeybindLabelButton(parent, opts)
 	opts = opts or {}
 	keybind_btn_counter = keybind_btn_counter + 1
@@ -533,6 +569,10 @@ function LibAPH.CreateKeybindLabelButton(parent, opts)
 
 	local name_label = btn:GetNamedChild("NameLabel")
 	if name_label then name_label:SetFont("ZoFontDialogKeybindDescription") end
+
+	btn.libaph_keybind = opts.keybind
+	keybind_buttons[#keybind_buttons + 1] = btn
+	TrackKeybindWindow(btn)
 
 	return btn
 end
