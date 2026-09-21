@@ -53,24 +53,23 @@ end
 
 function LibAPH.FitBugReportText(text)
 	if #text <= BUG_REPORT_MAX_CHARS then return text end
+	local tail = "\n\n" .. LibAPH.PASTEBIN_MESSAGE
 	local note = "\n\n[report cut at " .. BUG_REPORT_MAX_CHARS .. " characters]"
-	return string.sub(text, 1, BUG_REPORT_MAX_CHARS - #note) .. note
+	local body = string.sub(text, 1, #text - (string.sub(text, -#tail) == tail and #tail or 0))
+	return string.sub(body, 1, BUG_REPORT_MAX_CHARS - #note - #tail) .. note .. tail
 end
 
 LibAPH.BUG_REPORT_MAX_CHARS = BUG_REPORT_MAX_CHARS
+LibAPH.BUG_REPORT_TITLE = "COPY & PASTE THIS BUG REPORT"
+LibAPH.PASTEBIN_MESSAGE = "COPY PASTE THE CONTENT OF THIS WINDOW AND PASTE IT ON https://pastebin.com/ AND SUBMIT THE LINK."
 
 function LibAPH.CreateAddonBugReporter(opts)
 	local reporter = {}
 	local box
-
-	local function Store()
-		local store = opts.getStore()
-		store.captured_bugs = store.captured_bugs or {}
-		return store
-	end
+	local session_bugs = {}
+	if opts.getStore then opts.getStore().captured_bugs = nil end
 
 	local function BuildText()
-		local store = Store()
 		local header = {
 			opts.title .. " bug report",
 			"Version: " .. tostring(opts.version or "unknown"),
@@ -79,9 +78,9 @@ function LibAPH.CreateAddonBugReporter(opts)
 			"Language: " .. tostring(GetCVar("Language.2")),
 		}
 		local error_section
-		if #store.captured_bugs > 0 then
+		if #session_bugs > 0 then
 			local lines = {}
-			for _, bug in ipairs(store.captured_bugs) do
+			for _, bug in ipairs(session_bugs) do
 				lines[#lines + 1] = bug.count > 1 and (bug.text .. " (seen " .. bug.count .. "x)") or bug.text
 			end
 			error_section = "Lua errors captured:\n\n" .. table.concat(lines, "\n\n")
@@ -89,22 +88,23 @@ function LibAPH.CreateAddonBugReporter(opts)
 			error_section = "No Lua error from " .. opts.title .. " was captured.\n"
 				.. "Describe the bug you saw here: what you were doing, what happened, and what you expected to happen.\n\n\n"
 		end
-		return LibAPH.FitBugReportText(table.concat(header, "\n") .. "\n\n" .. error_section .. "\n\n" .. LibAPH.BuildEnvironmentReport())
+		return LibAPH.FitBugReportText(table.concat(header, "\n") .. "\n\n" .. LibAPH.BuildEnvironmentReport() .. "\n\n" .. error_section .. "\n\n" .. LibAPH.PASTEBIN_MESSAGE)
 	end
 
 	function reporter.Show()
 		if IsConsoleUI() then return end
 		box = box or LibAPH.CreateCopyTextBox({
 			name = opts.boxName,
-			titleText = "COPY & PASTE THIS TO YOUR BUG REPORT",
+			titleText = LibAPH.BUG_REPORT_TITLE,
+			pastebin = true,
 			closeText = "Close",
 			maxInputChars = BUG_REPORT_MAX_CHARS,
 			dismissBug = { text = "Dismiss Bug", onClick = function()
-				Store().captured_bugs = {}
+				ZO_ClearNumericallyIndexedTable(session_bugs)
 				reporter.Show()
 			end },
 			wipeAllBugs = { text = "Wipe All Bugs", onClick = function()
-				Store().captured_bugs = {}
+				ZO_ClearNumericallyIndexedTable(session_bugs)
 				box:Hide()
 			end },
 		})
@@ -113,7 +113,7 @@ function LibAPH.CreateAddonBugReporter(opts)
 
 	if not IsConsoleUI() then
 		LibAPH.HookErrorCapture(opts.addonName, function(text)
-			local is_new = LibAPH.RecordCapturedBug(Store().captured_bugs, text)
+			local is_new = LibAPH.RecordCapturedBug(session_bugs, text)
 			if is_new or (box and not box.window:IsHidden()) then reporter.Show() end
 		end)
 	end

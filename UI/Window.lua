@@ -196,9 +196,15 @@ function LibAPH.CreateRowList(parent, opts)
 	return list
 end
 
+LibAPH.PASTEBIN_URL = "https://pastebin.com/"
+
+function LibAPH.OpenPastebin()
+	RequestOpenUnsafeURL(LibAPH.PASTEBIN_URL)
+end
+
 function LibAPH.CreateCopyTextBox(opts)
 	opts = opts or {}
-	local footer_h = (opts.dismissBug or opts.wipeAllBugs) and 34 or 0
+	local footer_h = (opts.dismissBug or opts.wipeAllBugs or opts.pastebin) and 44 or 0
 	local screen_w, screen_h = GuiRoot:GetWidth(), GuiRoot:GetHeight()
 	local width = opts.width or zo_clamp(screen_w * (opts.widthPct or 0.31), opts.startMinWidth or 500, opts.startMaxWidth or 800)
 	local height = opts.height or zo_clamp(screen_h * (opts.heightPct or 0.35), opts.startMinHeight or 320, opts.startMaxHeight or 600) + footer_h
@@ -230,13 +236,17 @@ function LibAPH.CreateCopyTextBox(opts)
 	title_lbl:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 12)
 	title_lbl:SetAnchor(TOPRIGHT, close_btn, TOPLEFT, -10, 0)
 	title_lbl:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
+	if opts.pastebin then
+		title_lbl:SetMouseEnabled(true)
+		LibAPH.AddButtonHoverEffects(title_lbl, { 1, 1, 1, 1 })
+		title_lbl.libaph_click_action = LibAPH.OpenPastebin
+	end
 
-	local copy_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
-	copy_lbl:SetFont("ZoFontWinH5")
-	copy_lbl:SetColor(0.4, 1, 0.4, 1)
+	local copy_lbl = WINDOW_MANAGER:CreateControlFromVirtual(nil, win, "ZO_DefaultButton")
+	copy_lbl:SetDimensions(120, 28)
+	copy_lbl:SetFont("ZoFontWinH4")
 	copy_lbl:SetText(opts.copyText or "Select All")
-	copy_lbl:SetAnchor(TOPRIGHT, close_btn, BOTTOMRIGHT, 0, 10)
-	copy_lbl:SetMouseEnabled(true)
+	copy_lbl:SetAnchor(TOPRIGHT, close_btn, BOTTOMRIGHT, 0, 6)
 
 	local dev_lbl
 	if opts.devButton then
@@ -250,7 +260,7 @@ function LibAPH.CreateCopyTextBox(opts)
 		dev_lbl.libaph_click_action = opts.devButton.onClick
 	end
 
-	local reserved_width = 8 + copy_lbl:GetTextWidth()
+	local reserved_width = 8 + 120
 	if dev_lbl then
 		reserved_width = reserved_width + 20 + dev_lbl:GetTextWidth()
 	end
@@ -413,34 +423,31 @@ function LibAPH.CreateCopyTextBox(opts)
 		do_search(not IsShiftKeyDown())
 	end)
 
-	LibAPH.AddButtonHoverEffects(copy_lbl, { 0.4, 1, 0.4, 1 })
-	copy_lbl.libaph_click_action = function()
+	copy_lbl:SetHandler("OnClicked", function()
 		eb:SelectAll()
 		eb:TakeFocus()
+	end)
+
+	local function FooterButton(text, point, offsetX, onClick)
+		local btn = WINDOW_MANAGER:CreateControlFromVirtual(nil, win, "ZO_DefaultButton")
+		btn:SetDimensions(150, 30)
+		btn:SetFont("ZoFontWinH4")
+		btn:SetText(text)
+		btn:SetAnchor(point, win, point, offsetX, -10)
+		btn:SetHandler("OnClicked", function() onClick() end)
+		return btn
 	end
 
 	if opts.dismissBug then
-		local dismiss_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
-		dismiss_lbl:SetFont("ZoFontWinH5")
-		dismiss_lbl:SetColor(1, 0.55, 0.55, 1)
-		dismiss_lbl:SetText(opts.dismissBug.text or "Dismiss Bug")
-		dismiss_lbl:SetAnchor(BOTTOMLEFT, win, BOTTOMLEFT, 15, -14)
-		dismiss_lbl:SetMouseEnabled(true)
-		LibAPH.AddButtonHoverEffects(dismiss_lbl, { 1, 0.55, 0.55, 1 })
-		dismiss_lbl.libaph_click_action = opts.dismissBug.onClick
-		box.dismiss_lbl = dismiss_lbl
+		box.dismiss_lbl = FooterButton(opts.dismissBug.text or "Dismiss Bug", BOTTOMLEFT, 15, opts.dismissBug.onClick)
+	end
+
+	if opts.pastebin then
+		box.pastebin_btn = FooterButton(opts.pastebinText or "Pastebin", BOTTOM, 0, LibAPH.OpenPastebin)
 	end
 
 	if opts.wipeAllBugs then
-		local wipe_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
-		wipe_lbl:SetFont("ZoFontWinH5")
-		wipe_lbl:SetColor(1, 0.55, 0.55, 1)
-		wipe_lbl:SetText(opts.wipeAllBugs.text or "Wipe All Bugs")
-		wipe_lbl:SetAnchor(BOTTOMRIGHT, win, BOTTOMRIGHT, -15, -14)
-		wipe_lbl:SetMouseEnabled(true)
-		LibAPH.AddButtonHoverEffects(wipe_lbl, { 1, 0.55, 0.55, 1 })
-		wipe_lbl.libaph_click_action = opts.wipeAllBugs.onClick
-		box.wipe_lbl = wipe_lbl
+		box.wipe_lbl = FooterButton(opts.wipeAllBugs.text or "Wipe All Bugs", BOTTOMRIGHT, -15, opts.wipeAllBugs.onClick)
 	end
 
 	function box:Hide()
