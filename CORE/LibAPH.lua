@@ -3,6 +3,7 @@
 -- See LICENSE.md and NOTICE.md.
 
 LibAPH = LibAPH or {}
+local LibAPH = LibAPH
 LibAPH.VERSION = "0.0.1"
 
 EVENT_MANAGER:RegisterForEvent("LibAPH_Init", EVENT_ADD_ON_LOADED, function(eventCode, addonName)

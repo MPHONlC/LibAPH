@@ -3,6 +3,7 @@
 -- See LICENSE.md and NOTICE.md.
 
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
+local LibAPH = LibAPH
 
 function LibAPH.Localize(langTable, langCode, key, ...)
 	local for_lang = langTable and langTable[langCode]

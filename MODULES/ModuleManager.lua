@@ -3,6 +3,9 @@
 -- See LICENSE.md and NOTICE.md.
 
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
+local LibAPH = LibAPH
+local lifecycles = {}
+local stash = {}
 
 function LibAPH.CallOptional(warnedTable, tag, unavailableNote, fn, label, ...)
 	if type(fn) == "function" then
@@ -31,7 +34,7 @@ function LibAPH.ApplyModuleDisableOverrides(store, moduleFileFuncs, modulesTable
 		if store.module_disabled[mod_key] then
 			modulesTable[mod_key] = false
 			for _, fname in ipairs(funcs) do
-				if getFn and LibAPH._lifecycles[mod_key] then
+				if getFn and lifecycles[mod_key] then
 					LibAPH.StashFunc(mod_key, fname, getFn(fname))
 				end
 				nilOutFn(fname)
@@ -40,28 +43,25 @@ function LibAPH.ApplyModuleDisableOverrides(store, moduleFileFuncs, modulesTable
 	end
 end
 
-LibAPH._lifecycles = {}
-LibAPH._stash = {}
-
 function LibAPH.RegisterModuleLifecycle(modKey, hooks)
-	LibAPH._lifecycles[modKey] = hooks
+	lifecycles[modKey] = hooks
 end
 
 function LibAPH.HasModuleLifecycle(modKey)
-	return LibAPH._lifecycles[modKey] ~= nil
+	return lifecycles[modKey] ~= nil
 end
 
 function LibAPH.StashFunc(modKey, fname, fn)
-	LibAPH._stash[modKey] = LibAPH._stash[modKey] or {}
-	LibAPH._stash[modKey][fname] = fn
+	stash[modKey] = stash[modKey] or {}
+	stash[modKey][fname] = fn
 end
 
 function LibAPH.GetStashedFunc(modKey, fname)
-	return LibAPH._stash[modKey] and LibAPH._stash[modKey][fname]
+	return stash[modKey] and stash[modKey][fname]
 end
 
 function LibAPH.SyncModuleLifecycle(modulesTable, modKey, isDisabled)
-	local hooks = LibAPH._lifecycles[modKey]
+	local hooks = lifecycles[modKey]
 	if not hooks then return false end
 	if isDisabled then
 		if modulesTable[modKey] and hooks.onUnload then hooks.onUnload() end

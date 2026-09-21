@@ -3,6 +3,7 @@
 -- See LICENSE.md and NOTICE.md.
 
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
+local LibAPH = LibAPH
 
 LibAPH.registered_dependencies = LibAPH.registered_dependencies or {}
 

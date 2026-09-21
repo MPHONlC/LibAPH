@@ -9,6 +9,7 @@ local ZO_Gamepad_GetRightStickEasedX = ZO_Gamepad_GetRightStickEasedX
 local ZO_Gamepad_GetRightStickEasedY = ZO_Gamepad_GetRightStickEasedY
 local SetGamepadRightStickConsumedByUI = SetGamepadRightStickConsumedByUI
 local GuiRoot = GuiRoot
+local LibAPH = LibAPH
 
 function LibAPH.CreateGamepadMover(target)
 	local GAMEPAD_TIMEOUT_MS = 3000

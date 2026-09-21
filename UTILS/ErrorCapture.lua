@@ -3,6 +3,7 @@
 -- See LICENSE.md and NOTICE.md.
 
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
+local LibAPH = LibAPH
 
 local TIME_SYNC_ERROR_CODES = { [0x32BBA739] = true, [0xEA5D75AD] = true }
 

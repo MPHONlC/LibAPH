@@ -3,6 +3,7 @@
 -- See LICENSE.md and NOTICE.md.
 
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
+local LibAPH = LibAPH
 
 local STATUS_ICON_TEXTURE = "EsoUI/Art/Miscellaneous/ESO_Icon_Warning.dds"
 local STATUS_ICON_SIZE = 16

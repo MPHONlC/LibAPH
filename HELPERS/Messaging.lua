@@ -3,6 +3,7 @@
 -- See LICENSE.md and NOTICE.md.
 
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
+local LibAPH = LibAPH
 
 function LibAPH.ShowDialogChained(dialogId, title, body, buttons, delayMs)
 	if not ESO_Dialogs[dialogId] then
