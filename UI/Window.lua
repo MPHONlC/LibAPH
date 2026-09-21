@@ -252,11 +252,6 @@ function LibAPH.CreateCopyTextBox(opts)
 	title_lbl:SetAnchor(TOPLEFT, win, TOPLEFT, 15, 12)
 	title_lbl:SetAnchor(TOPRIGHT, close_btn, TOPLEFT, -10, 0)
 	title_lbl:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
-	if opts.pastebin then
-		title_lbl:SetMouseEnabled(true)
-		LibAPH.AddButtonHoverEffects(title_lbl, { 1, 1, 1, 1 })
-		title_lbl.libaph_click_action = function() LibAPH.ConfirmOpenPastebin(win) end
-	end
 
 	local copy_lbl = WINDOW_MANAGER:CreateControlFromVirtual(nil, win, "ZO_DefaultButton")
 	copy_lbl:SetDimensions(120, 28)
@@ -318,7 +313,9 @@ function LibAPH.CreateCopyTextBox(opts)
 	measure:SetMouseEnabled(false)
 	measure:SetAnchor(TOPLEFT, win, TOPLEFT, 0, 0)
 
-	ZO_ScrollList_AddDataType(text_list, COPY_BOX_TEXT_ROW, "LibAPH_ScrollListTextRow", 30, function(row)
+	local text_height = 30
+	ZO_ScrollList_AddDataType(text_list, COPY_BOX_TEXT_ROW, "LibAPH_ScrollListTextRow", text_height, function(row)
+		row:SetHeight(text_height)
 		eb:SetParent(row)
 		eb:ClearAnchors()
 		eb:SetAnchorFill(row)
@@ -330,7 +327,7 @@ function LibAPH.CreateCopyTextBox(opts)
 		measure:SetFont(eb:GetFont())
 		measure:SetWidth(text_width)
 		measure:SetText(layout_text)
-		local text_height = measure:GetTextHeight() + eb:GetFontHeight() * 2
+		text_height = measure:GetTextHeight() + eb:GetFontHeight() * 2
 		ZO_ScrollList_UpdateDataTypeHeight(text_list, COPY_BOX_TEXT_ROW, text_height)
 		ZO_ScrollList_Clear(text_list)
 		local data_list = ZO_ScrollList_GetDataList(text_list)
@@ -486,6 +483,7 @@ function LibAPH.CreateCopyTextBox(opts)
 		end
 		relayout()
 		ZO_ScrollList_ResetToTop(text_list)
+		zo_callLater(relayout, 0)
 		eb:SetCursorPosition(0)
 		eb:SelectAll()
 		eb:TakeFocus()
@@ -539,7 +537,6 @@ function LibAPH.AddGhostText(editBox, ghostText)
 	return ghost
 end
 
-local DEFAULT_KEYBIND_LAYER = "LibAPH_KeybindButtons"
 local keybind_buttons = {}
 local keybind_windows = {}
 local shown_windows_by_layer = {}
@@ -565,7 +562,7 @@ local function SetKeybindWindowShown(win, shown)
 end
 
 local function TrackKeybindWindow(btn, layer)
-	local win = btn:GetOwningWindow()
+	local win = layer and btn:GetOwningWindow()
 	if not win then return end
 	local layers = keybind_windows[win]
 	if not layers then
@@ -613,8 +610,7 @@ function LibAPH.CreateKeybindLabelButton(parent, opts)
 	keybind_btn_counter = keybind_btn_counter + 1
 	local btn = WINDOW_MANAGER:CreateControlFromVirtual("LibAPH_KeybindBtn" .. keybind_btn_counter, parent, "ZO_KeybindButton")
 	btn:SetKeybindButtonDescriptor({
-		keybind = opts.action or opts.keybind,
-		gamepadPreferredKeybind = opts.gamepadPreferredKeybind,
+		keybind = opts.action,
 		name = opts.name or "",
 		callback = function(...)
 			if btn.libaph_click_action then btn.libaph_click_action(...) end
@@ -625,9 +621,9 @@ function LibAPH.CreateKeybindLabelButton(parent, opts)
 	local name_label = btn:GetNamedChild("NameLabel")
 	if name_label then name_label:SetFont("ZoFontDialogKeybindDescription") end
 
-	btn.libaph_keybind = opts.action or opts.keybind
+	btn.libaph_keybind = opts.action
 	keybind_buttons[#keybind_buttons + 1] = btn
-	TrackKeybindWindow(btn, opts.layer or DEFAULT_KEYBIND_LAYER)
+	TrackKeybindWindow(btn, opts.layer)
 
 	return btn
 end
