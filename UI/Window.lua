@@ -237,6 +237,7 @@ local COPY_BOX_TEXT_ROW = 1
 local COPY_BOX_WHEEL_STEP = 60
 local COPY_BOX_SCROLLBAR_SPACE = 24
 local COPY_BOX_SECTIONS_WIDTH = 170
+local COPY_BOX_SELECTION_COLOR = { 1, 0.5, 0.05, 0.55 }
 
 function LibAPH.CreateCopyTextBox(opts)
 	opts = opts or {}
@@ -338,6 +339,7 @@ function LibAPH.CreateCopyTextBox(opts)
 
 	local eb = WINDOW_MANAGER:CreateControlFromVirtual(nil, text_list.contents, "ZO_DefaultEditMultiLineForBackdrop")
 	eb:SetMaxInputChars(opts.maxInputChars or 4000)
+	eb:SetSelectionColor(unpack(COPY_BOX_SELECTION_COLOR))
 	eb:SetHandler("OnMouseWheel", function(_, delta)
 		ZO_ScrollList_ScrollRelative(text_list, -delta * COPY_BOX_WHEEL_STEP)
 	end)
