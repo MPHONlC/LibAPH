@@ -377,7 +377,7 @@ function LibAPH.CreateCopyTextBox(opts)
 	})
 
 	local strip = opts.stripColors or LibAPH.StripColors
-	local box = { window = win, editbox = eb }
+	local box = { window = win, editbox = eb, search_box = search_box }
 	local plain_text, lower_text = "", ""
 	local search_pos = 1
 
@@ -513,7 +513,7 @@ function LibAPH.CreateCopyTextBox(opts)
 	end
 
 	local function SetBoxText(text)
-		plain_text = strip(text)
+		plain_text = string.gsub(strip(text), "|", "/")
 		lower_text = string.lower(plain_text)
 		search_pos = 1
 		status_lbl:SetText("")

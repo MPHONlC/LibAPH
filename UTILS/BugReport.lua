@@ -21,7 +21,7 @@ local function FormatEnvironmentLine(am, index, name, is_out_of_date)
 	else
 		api = is_out_of_date and "not recorded (ESO flags it out of date)" or "not recorded (ESO reports it current)"
 	end
-	return string.format("- %s | Version %s | AddOnVersion %s | API %s",
+	return string.format("- %s / Version %s / AddOnVersion %s / API %s",
 		name,
 		(meta and meta.displayVersion) or "not recorded",
 		addon_version > 0 and tostring(addon_version) or "none",
