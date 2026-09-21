@@ -28,7 +28,11 @@ local function FormatEnvironmentLine(am, index, name, is_out_of_date)
 		api)
 end
 
-function LibAPH.BuildEnvironmentReport()
+function LibAPH.GetLiveApiLine()
+	return "Live API: " .. tostring(GetAPIVersion())
+end
+
+function LibAPH.BuildEnabledAddonsReport()
 	local am = GetAddOnManager()
 	local addons, libraries = {}, {}
 	for i = 1, am:GetNumAddOns() do
@@ -41,8 +45,6 @@ function LibAPH.BuildEnvironmentReport()
 	table.sort(addons)
 	table.sort(libraries)
 	return table.concat({
-		"Live API: " .. tostring(GetAPIVersion()),
-		"",
 		"Enabled add-ons (" .. #addons .. "):",
 		table.concat(addons, "\n"),
 		"",
@@ -51,12 +53,14 @@ function LibAPH.BuildEnvironmentReport()
 	}, "\n")
 end
 
+function LibAPH.BuildEnvironmentReport()
+	return LibAPH.GetLiveApiLine() .. "\n\n" .. LibAPH.BuildEnabledAddonsReport()
+end
+
 function LibAPH.FitBugReportText(text)
 	if #text <= BUG_REPORT_MAX_CHARS then return text end
-	local tail = "\n\n" .. LibAPH.PASTEBIN_MESSAGE
 	local note = "\n\n[report cut at " .. BUG_REPORT_MAX_CHARS .. " characters]"
-	local body = string.sub(text, 1, #text - (string.sub(text, -#tail) == tail and #tail or 0))
-	return string.sub(body, 1, BUG_REPORT_MAX_CHARS - #note - #tail) .. note .. tail
+	return string.sub(text, 1, BUG_REPORT_MAX_CHARS - #note) .. note
 end
 
 LibAPH.BUG_REPORT_MAX_CHARS = BUG_REPORT_MAX_CHARS
@@ -88,7 +92,13 @@ function LibAPH.CreateAddonBugReporter(opts)
 			error_section = "No Lua error from " .. opts.title .. " was captured.\n"
 				.. "Describe the bug you saw here: what you were doing, what happened, and what you expected to happen.\n\n\n"
 		end
-		return LibAPH.FitBugReportText(table.concat(header, "\n") .. "\n\n" .. LibAPH.BuildEnvironmentReport() .. "\n\n" .. error_section .. "\n\n" .. LibAPH.PASTEBIN_MESSAGE)
+		return LibAPH.FitBugReportText(table.concat({
+			LibAPH.PASTEBIN_MESSAGE,
+			error_section,
+			table.concat(header, "\n"),
+			LibAPH.GetLiveApiLine(),
+			LibAPH.BuildEnabledAddonsReport(),
+		}, "\n\n"))
 	end
 
 	function reporter.Show()
