@@ -13,6 +13,7 @@ CORE/LibAPH.lua
 UI/StatusIcons.lua
 UI/Window.lua
 UI/Templates.xml
+UI/Bindings.xml
 UI/Gamepad.lua
 UTILS/Platform.lua
 HELPERS/Messaging.lua

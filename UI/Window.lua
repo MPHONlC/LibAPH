@@ -214,6 +214,25 @@ function LibAPH.ConfirmOpenPastebin(win)
 	end)
 end
 
+local SEARCH_LAYER = "LibAPH_Search"
+local active_search_step
+
+function LibAPH.StepActiveSearch(direction)
+	if not active_search_step then return false end
+	active_search_step(direction)
+	return true
+end
+
+local function SetActiveSearch(step)
+	active_search_step = step
+	local active = IsActionLayerActiveByName(SEARCH_LAYER)
+	if step and not active then
+		PushActionLayerByName(SEARCH_LAYER)
+	elseif not step and active then
+		RemoveActionLayerByName(SEARCH_LAYER)
+	end
+end
+
 local COPY_BOX_TEXT_ROW = 1
 local COPY_BOX_WHEEL_STEP = 60
 local COPY_BOX_SCROLLBAR_SPACE = 24
@@ -267,7 +286,7 @@ function LibAPH.CreateCopyTextBox(opts)
 		sections_container:SetAnchor(TOPRIGHT, copy_lbl, TOPLEFT, -10, 0)
 		sections_combo = ZO_ComboBox_ObjectFromContainer(sections_container)
 		sections_combo:SetSortsItems(false)
-		sections_combo:EnableMultiSelect(opts.sectionsText or "Sections (<<1>>)", opts.noSectionsText or "Sections (0)")
+		sections_combo:EnableMultiSelect(opts.sectionsText or "More Info (<<1>>)", opts.noSectionsText or "More Info (0)")
 	end
 	local top_row_left = sections_container or copy_lbl
 
@@ -448,6 +467,13 @@ function LibAPH.CreateCopyTextBox(opts)
 	search_box:SetHandler("OnEnter", function()
 		do_search(not IsShiftKeyDown())
 	end)
+	search_box:SetHandler("OnUpArrow", function() do_search(false) end)
+	search_box:SetHandler("OnDownArrow", function() do_search(true) end)
+	local function StepSearch(direction) do_search(direction > 0) end
+	ZO_PostHookHandler(win, "OnHide", function()
+		if active_search_step == StepSearch then SetActiveSearch(nil) end
+	end)
+	box.step_search = StepSearch
 
 	copy_lbl:SetHandler("OnClicked", function()
 		eb:SelectAll()
@@ -528,6 +554,7 @@ function LibAPH.CreateCopyTextBox(opts)
 		SetBoxText(text)
 		search_box:SetText("")
 		win:SetHidden(false)
+		if IsInGamepadPreferredMode() then SetActiveSearch(box.step_search) end
 		if not SCENE_MANAGER:IsInUIMode() then
 			SCENE_MANAGER:SetInUIMode(true)
 		end
