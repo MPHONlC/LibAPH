@@ -202,6 +202,77 @@ function LibAPH.OpenPastebin()
 	RequestOpenUnsafeURL(LibAPH.PASTEBIN_URL)
 end
 
+function LibAPH.ConfirmOpenPastebin(win)
+	local was_visible = win ~= nil and not win:IsHidden()
+	if was_visible then win:SetHidden(true) end
+	LibAPH.ShowDialogChained("LibAPH_OPEN_PASTEBIN", "Pastebin",
+		"Open pastebin.com in your browser? Paste this report there, submit it, and share the link.", {
+		{ text = SI_DIALOG_CONFIRM, callback = LibAPH.OpenPastebin },
+		{ text = SI_DIALOG_CANCEL },
+	}, 0, function()
+		if was_visible then win:SetHidden(false) end
+	end)
+end
+
+local SCROLL_THUMB_COLOR = { 0.55, 0.55, 0.55, 0.9 }
+local SCROLL_THUMB_HOVER_COLOR = { 0.8, 0.8, 0.8, 1 }
+
+function LibAPH.MakeScrollThumbDraggable(track, thumb, opts)
+	track:SetMouseEnabled(true)
+	thumb:SetMouseEnabled(true)
+	thumb:SetHitInsets(-6, -2, 6, 2)
+	track:SetHitInsets(-6, 0, 6, 0)
+	local drag_start_y, drag_start_line, dragging
+
+	local function Travel()
+		return zo_max(1, track:GetHeight() - thumb:GetHeight())
+	end
+
+	local function OnDragUpdate()
+		local extents = opts.getExtents()
+		if extents <= 0 then return end
+		local _, cursor_y = GetUIMousePosition()
+		local line = drag_start_line + (cursor_y - drag_start_y) / Travel() * extents
+		opts.setTopLine(zo_clamp(zo_round(line), 1, extents + 1))
+		opts.onScrolled()
+	end
+
+	local function StartDrag()
+		local _, cursor_y = GetUIMousePosition()
+		drag_start_y, drag_start_line, dragging = cursor_y, opts.getTopLine(), true
+		thumb:SetCenterColor(unpack(SCROLL_THUMB_HOVER_COLOR))
+		thumb:SetHandler("OnUpdate", OnDragUpdate)
+	end
+
+	local function StopDrag()
+		dragging = false
+		thumb:SetHandler("OnUpdate", nil)
+		thumb:SetCenterColor(unpack(SCROLL_THUMB_COLOR))
+	end
+
+	thumb:SetHandler("OnMouseEnter", function() thumb:SetCenterColor(unpack(SCROLL_THUMB_HOVER_COLOR)) end)
+	thumb:SetHandler("OnMouseExit", function() if not dragging then thumb:SetCenterColor(unpack(SCROLL_THUMB_COLOR)) end end)
+	thumb:SetHandler("OnMouseDown", function(_, button)
+		if button == MOUSE_BUTTON_INDEX_LEFT then StartDrag() end
+	end)
+	thumb:SetHandler("OnMouseUp", function(_, button)
+		if button == MOUSE_BUTTON_INDEX_LEFT then StopDrag() end
+	end)
+	track:SetHandler("OnMouseDown", function(_, button)
+		if button ~= MOUSE_BUTTON_INDEX_LEFT then return end
+		local extents = opts.getExtents()
+		if extents <= 0 then return end
+		local _, cursor_y = GetUIMousePosition()
+		local frac = zo_clamp((cursor_y - track:GetTop() - thumb:GetHeight() / 2) / Travel(), 0, 1)
+		opts.setTopLine(zo_round(frac * extents) + 1)
+		opts.onScrolled()
+		StartDrag()
+	end)
+	track:SetHandler("OnMouseUp", function(_, button)
+		if button == MOUSE_BUTTON_INDEX_LEFT then StopDrag() end
+	end)
+end
+
 function LibAPH.CreateCopyTextBox(opts)
 	opts = opts or {}
 	local footer_h = (opts.dismissBug or opts.wipeAllBugs or opts.pastebin) and 44 or 0
@@ -211,9 +282,9 @@ function LibAPH.CreateCopyTextBox(opts)
 	local win = WINDOW_MANAGER:CreateControl(opts.name, GuiRoot, CT_TOPLEVELCONTROL)
 	win:SetDimensions(width, height)
 	win:SetAnchor(CENTER, GuiRoot, CENTER, 0, 0)
-	win:SetDrawTier(DT_HIGH)
-	win:SetDrawLayer(DL_OVERLAY)
-	win:SetDrawLevel(9500)
+	win:SetDrawTier(DT_MEDIUM)
+	win:SetDrawLayer(DL_BACKGROUND)
+	win:SetDrawLevel(ZO_MEDIUM_TIER_KEYBOARD_STANDARD_DIALOG - 1)
 	win:SetMouseEnabled(true)
 	win:SetMovable(true)
 	win:SetClampedToScreen(true)
@@ -239,7 +310,7 @@ function LibAPH.CreateCopyTextBox(opts)
 	if opts.pastebin then
 		title_lbl:SetMouseEnabled(true)
 		LibAPH.AddButtonHoverEffects(title_lbl, { 1, 1, 1, 1 })
-		title_lbl.libaph_click_action = LibAPH.OpenPastebin
+		title_lbl.libaph_click_action = function() LibAPH.ConfirmOpenPastebin(win) end
 	end
 
 	local copy_lbl = WINDOW_MANAGER:CreateControlFromVirtual(nil, win, "ZO_DefaultButton")
@@ -320,6 +391,12 @@ function LibAPH.CreateCopyTextBox(opts)
 		scroll_thumb:SetAnchor(TOPLEFT, scroll_track, TOPLEFT, 0, travel * frac)
 	end
 	ZO_PostHookHandler(eb, "OnMouseWheel", update_scrollbar)
+	LibAPH.MakeScrollThumbDraggable(scroll_track, scroll_thumb, {
+		getExtents = function() return eb:GetScrollExtents() end,
+		getTopLine = function() return eb:GetTopLineIndex() end,
+		setTopLine = function(line) eb:SetTopLineIndex(line) end,
+		onScrolled = update_scrollbar,
+	})
 
 	LibAPH.MakeWindowResizable(win, {
 		minWidth = 400, minHeight = 300, maxWidth = 1200, maxHeight = 900,
@@ -443,7 +520,7 @@ function LibAPH.CreateCopyTextBox(opts)
 	end
 
 	if opts.pastebin then
-		box.pastebin_btn = FooterButton(opts.pastebinText or "Pastebin", BOTTOM, 0, LibAPH.OpenPastebin)
+		box.pastebin_btn = FooterButton(opts.pastebinText or "Pastebin", BOTTOM, 0, function() LibAPH.ConfirmOpenPastebin(win) end)
 	end
 
 	if opts.wipeAllBugs then
