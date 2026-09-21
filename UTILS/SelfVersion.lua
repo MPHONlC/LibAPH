@@ -40,7 +40,7 @@ function LibAPH.CheckAddonVersions(knownVersions, warnedTable, onMismatch)
 		local expected = knownVersions[addonName]
 		if expected and isEnabled then
 			local installedVer = am:GetAddOnVersion(i) or 0
-			if installedVer > 0 and installedVer < expected.requiredVersion and warnedTable[addonName] ~= expected.requiredVersion then
+			if expected.requiredVersion and installedVer > 0 and installedVer < expected.requiredVersion and warnedTable[addonName] ~= expected.requiredVersion then
 				warnedTable[addonName] = expected.requiredVersion
 				onMismatch(addonName, installedVer, expected)
 			end
