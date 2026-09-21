@@ -37,7 +37,7 @@ Some of the utilities included:
 - ✓ Diagnostic-panel formatters
 - ✓ LAM2 submenu-state and label-refresh helpers
 - ✓ Library/addon dependency registration and version checks
-- ✓ Error capture for bug reports
+- ✓ Error capture for bug reports, plus a PC bug report popup (`/libaphbugreport`) that opens on a LibAPH Lua error and lists the live API and every enabled add-on and library with its Version, AddOnVersion and API
 - ✓ Colored status-icon strips for list rows
 
 The Add-Ons menu features (categories, search box, status icons, dependency tooltips, `/libcheck`, `/libcategories`, `/libraryversioncheck`) live in [APH-On Manager](https://github.com/MPHONlC/APH-OnManager), which depends on this library.

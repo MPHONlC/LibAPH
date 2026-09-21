@@ -135,5 +135,8 @@ function LibAPH.BuildBugReportText(opts)
 	local text = opts.statsText
 	text = text .. "\n\n" .. opts.fieldSettingsLabel .. "\n  " .. opts.settingsLines:gsub("\n", "\n  ")
 	text = text .. "\n\n" .. opts.errorSection
-	return text
+	if opts.environmentText then
+		text = text .. "\n\n" .. opts.environmentText
+	end
+	return LibAPH.FitBugReportText and LibAPH.FitBugReportText(text) or text
 end

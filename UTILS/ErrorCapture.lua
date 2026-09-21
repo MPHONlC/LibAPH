@@ -11,7 +11,8 @@ function LibAPH.HookErrorCapture(addonName, onCaptured)
 	EVENT_MANAGER:RegisterForEvent(addonName .. "_LibAPH_ErrorCapture", EVENT_LUA_ERROR, function(_, errorString, errorCode)
 		if type(errorString) ~= "string" then return end
 		if TIME_SYNC_ERROR_CODES[errorCode] then return end
-		if string.find(errorString, addonName, 1, true) then
+		local owner = string.match(errorString, "AddOns/([^/]+)/")
+		if owner == addonName or (not owner and string.find(errorString, addonName, 1, true)) then
 			onCaptured(errorString)
 		end
 	end)

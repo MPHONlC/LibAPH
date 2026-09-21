@@ -517,29 +517,42 @@ function LibAPH.AddGhostText(editBox, ghostText)
 	return ghost
 end
 
-local KEYBIND_BUTTON_LAYER = "LibAPH_KeybindButtons"
+local DEFAULT_KEYBIND_LAYER = "LibAPH_KeybindButtons"
 local keybind_buttons = {}
 local keybind_windows = {}
-local shown_keybind_windows = {}
+local shown_windows_by_layer = {}
 
 local function SetKeybindWindowShown(win, shown)
-	if (shown_keybind_windows[win] == true) == shown then return end
-	shown_keybind_windows[win] = shown or nil
-	local any_shown = next(shown_keybind_windows) ~= nil
-	local active = IsActionLayerActiveByName(KEYBIND_BUTTON_LAYER)
-	if any_shown and not active then
-		PushActionLayerByName(KEYBIND_BUTTON_LAYER)
-	elseif not any_shown and active then
-		RemoveActionLayerByName(KEYBIND_BUTTON_LAYER)
+	local layers = keybind_windows[win]
+	if not layers then return end
+	for layer in pairs(layers) do
+		local shown_set = shown_windows_by_layer[layer]
+		if not shown_set then
+			shown_set = {}
+			shown_windows_by_layer[layer] = shown_set
+		end
+		shown_set[win] = shown or nil
+		local any_shown = next(shown_set) ~= nil
+		local active = IsActionLayerActiveByName(layer)
+		if any_shown and not active then
+			PushActionLayerByName(layer)
+		elseif not any_shown and active then
+			RemoveActionLayerByName(layer)
+		end
 	end
 end
 
-local function TrackKeybindWindow(btn)
+local function TrackKeybindWindow(btn, layer)
 	local win = btn:GetOwningWindow()
-	if not win or keybind_windows[win] then return end
-	keybind_windows[win] = true
-	ZO_PostHookHandler(win, "OnShow", function() SetKeybindWindowShown(win, true) end)
-	ZO_PostHookHandler(win, "OnHide", function() SetKeybindWindowShown(win, false) end)
+	if not win then return end
+	local layers = keybind_windows[win]
+	if not layers then
+		layers = {}
+		keybind_windows[win] = layers
+		ZO_PostHookHandler(win, "OnShow", function() SetKeybindWindowShown(win, true) end)
+		ZO_PostHookHandler(win, "OnHide", function() SetKeybindWindowShown(win, false) end)
+	end
+	layers[layer] = true
 	if not win:IsHidden() then SetKeybindWindowShown(win, true) end
 end
 
@@ -553,12 +566,32 @@ function LibAPH.HandleKeybindButtonKey(keybind)
 	return false
 end
 
+function LibAPH.RegisterKeybindDefaults(namespace, store, defaults)
+	if not IsKeyboardUISupported() then return end
+	store.touched_keybinds = store.touched_keybinds or {}
+	local touched = store.touched_keybinds
+	local function ForgetTouched()
+		for action in pairs(defaults) do touched[action] = nil end
+	end
+	ZO_PreHook("ResetAllBindsToDefault", ForgetTouched)
+	ZO_PreHook("ResetKeyboardBindsToDefault", ForgetTouched)
+	local function OnKeybindingTouched(_, layerIndex, categoryIndex, actionIndex, bindingIndex)
+		local action = GetActionInfo(layerIndex, categoryIndex, actionIndex)
+		if defaults[action] and bindingIndex == 1 then touched[action] = true end
+	end
+	EVENT_MANAGER:RegisterForEvent(namespace .. "_KeybindSet", EVENT_KEYBINDING_SET, OnKeybindingTouched)
+	EVENT_MANAGER:RegisterForEvent(namespace .. "_KeybindCleared", EVENT_KEYBINDING_CLEARED, OnKeybindingTouched)
+	for action, key in pairs(defaults) do
+		if not touched[action] then CreateDefaultActionBind(action, key) end
+	end
+end
+
 function LibAPH.CreateKeybindLabelButton(parent, opts)
 	opts = opts or {}
 	keybind_btn_counter = keybind_btn_counter + 1
 	local btn = WINDOW_MANAGER:CreateControlFromVirtual("LibAPH_KeybindBtn" .. keybind_btn_counter, parent, "ZO_KeybindButton")
 	btn:SetKeybindButtonDescriptor({
-		keybind = opts.keybind,
+		keybind = opts.action or opts.keybind,
 		gamepadPreferredKeybind = opts.gamepadPreferredKeybind,
 		name = opts.name or "",
 		callback = function(...)
@@ -570,9 +603,9 @@ function LibAPH.CreateKeybindLabelButton(parent, opts)
 	local name_label = btn:GetNamedChild("NameLabel")
 	if name_label then name_label:SetFont("ZoFontDialogKeybindDescription") end
 
-	btn.libaph_keybind = opts.keybind
+	btn.libaph_keybind = opts.action or opts.keybind
 	keybind_buttons[#keybind_buttons + 1] = btn
-	TrackKeybindWindow(btn)
+	TrackKeybindWindow(btn, opts.layer or DEFAULT_KEYBIND_LAYER)
 
 	return btn
 end

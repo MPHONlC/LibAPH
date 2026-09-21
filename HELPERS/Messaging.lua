@@ -5,16 +5,16 @@
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
 local LibAPH = LibAPH
 
-function LibAPH.ShowDialogChained(dialogId, title, body, buttons, delayMs)
-	if not ESO_Dialogs[dialogId] then
-		ESO_Dialogs[dialogId] = {
-			canQueue = true,
-			gamepadInfo = { dialogType = GAMEPAD_DIALOGS.BASIC },
-			title = { text = title },
-			mainText = { text = body },
-			buttons = buttons,
-		}
+function LibAPH.ShowDialogChained(dialogId, title, body, buttons, delayMs, onClosed)
+	local dialog = ESO_Dialogs[dialogId]
+	if not dialog then
+		dialog = { canQueue = true, gamepadInfo = { dialogType = GAMEPAD_DIALOGS.BASIC } }
+		ESO_Dialogs[dialogId] = dialog
 	end
+	dialog.title = { text = title }
+	dialog.mainText = { text = body }
+	dialog.buttons = buttons
+	dialog.finishedCallback = onClosed
 	zo_callLater(function()
 		if IsConsoleUI() or IsInGamepadPreferredMode() then
 			ZO_Dialogs_ShowGamepadDialog(dialogId)

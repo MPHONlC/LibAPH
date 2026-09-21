@@ -20,6 +20,7 @@ MODULES/ModuleManager.lua
 UTILS/Localization.lua
 UTILS/Format.lua
 UTILS/ErrorCapture.lua
+UTILS/BugReport.lua
 UTILS/DependencyRegistry.lua
 MODULES/Wizard.lua
 MENU/MenuRefresh.lua
