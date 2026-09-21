@@ -217,6 +217,7 @@ end
 local COPY_BOX_TEXT_ROW = 1
 local COPY_BOX_WHEEL_STEP = 60
 local COPY_BOX_SCROLLBAR_SPACE = 24
+local COPY_BOX_SECTIONS_WIDTH = 170
 
 function LibAPH.CreateCopyTextBox(opts)
 	opts = opts or {}
@@ -259,19 +260,33 @@ function LibAPH.CreateCopyTextBox(opts)
 	copy_lbl:SetText(opts.copyText or "Select All")
 	copy_lbl:SetAnchor(TOPRIGHT, close_btn, BOTTOMRIGHT, 0, 6)
 
+	local sections_container, sections_combo
+	if opts.sections then
+		sections_container = WINDOW_MANAGER:CreateControlFromVirtual(opts.name .. "Sections", win, "ZO_ComboBox")
+		sections_container:SetDimensions(COPY_BOX_SECTIONS_WIDTH, 28)
+		sections_container:SetAnchor(TOPRIGHT, copy_lbl, TOPLEFT, -10, 0)
+		sections_combo = ZO_ComboBox_ObjectFromContainer(sections_container)
+		sections_combo:SetSortsItems(false)
+		sections_combo:EnableMultiSelect(opts.sectionsText or "Sections (<<1>>)", opts.noSectionsText or "Sections (0)")
+	end
+	local top_row_left = sections_container or copy_lbl
+
 	local dev_lbl
 	if opts.devButton then
 		dev_lbl = WINDOW_MANAGER:CreateControl(nil, win, CT_LABEL)
 		dev_lbl:SetFont("ZoFontWinH5")
 		dev_lbl:SetColor(1, 0.65, 0, 1)
 		dev_lbl:SetText(opts.devButton.text or "Simulate Error")
-		dev_lbl:SetAnchor(TOPRIGHT, copy_lbl, TOPLEFT, -20, 0)
+		dev_lbl:SetAnchor(TOPRIGHT, top_row_left, TOPLEFT, -20, 0)
 		dev_lbl:SetMouseEnabled(true)
 		LibAPH.AddButtonHoverEffects(dev_lbl, { 1, 0.65, 0, 1 })
 		dev_lbl.libaph_click_action = opts.devButton.onClick
 	end
 
 	local reserved_width = 8 + 120
+	if sections_container then
+		reserved_width = reserved_width + 10 + COPY_BOX_SECTIONS_WIDTH
+	end
 	if dev_lbl then
 		reserved_width = reserved_width + 20 + dev_lbl:GetTextWidth()
 	end
@@ -469,14 +484,49 @@ function LibAPH.CreateCopyTextBox(opts)
 		end
 	end
 
-	function box:Show(text)
+	local function SetBoxText(text)
 		plain_text = strip(text)
 		lower_text = string.lower(plain_text)
 		search_pos = 1
-		search_box:SetText("")
 		status_lbl:SetText("")
 		eb:SetText(plain_text)
 		layout_text = plain_text
+	end
+
+	local report_sections
+	local enabled_sections = {}
+	local sections_touched = false
+
+	local function RenderSections()
+		return LibAPH.RenderBugReport(report_sections, enabled_sections)
+	end
+
+	function box:ShowReport(sections, hasErrors)
+		report_sections = sections
+		if not sections_touched then enabled_sections = LibAPH.DefaultBugReportSections(hasErrors) end
+		if sections_combo then
+			sections_combo:ClearItems()
+			for _, def in ipairs(LibAPH.BUG_REPORT_SECTIONS) do
+				if sections[def.key] and sections[def.key] ~= "" then
+					local key = def.key
+					local item = sections_combo:CreateItemEntry(def.label, function(combo, _, entry)
+						sections_touched = true
+						enabled_sections[key] = combo:IsItemSelected(entry)
+						SetBoxText(RenderSections())
+						relayout()
+					end)
+					sections_combo:AddItem(item)
+					if enabled_sections[key] then sections_combo:AddItemToSelected(item) end
+				end
+			end
+			sections_combo:RefreshSelectedItemText()
+		end
+		box:Show(RenderSections())
+	end
+
+	function box:Show(text)
+		SetBoxText(text)
+		search_box:SetText("")
 		win:SetHidden(false)
 		if not SCENE_MANAGER:IsInUIMode() then
 			SCENE_MANAGER:SetInUIMode(true)

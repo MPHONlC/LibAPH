@@ -5,7 +5,7 @@
 assert(LibAPH, "LibAPH.lua must be loaded before this file")
 local LibAPH = LibAPH
 
-local BUG_REPORT_MAX_CHARS = 30000
+local BUG_REPORT_MAX_CHARS = 50000
 local metadata_provider
 
 function LibAPH.SetAddonMetadataProvider(provider)
@@ -44,17 +44,47 @@ function LibAPH.BuildEnabledAddonsReport()
 	end
 	table.sort(addons)
 	table.sort(libraries)
-	return table.concat({
-		"Enabled add-ons (" .. #addons .. "):",
-		table.concat(addons, "\n"),
-		"",
-		"Enabled libraries (" .. #libraries .. "):",
-		table.concat(libraries, "\n"),
-	}, "\n")
+	return "Enabled add-ons (" .. #addons .. "):\n" .. table.concat(addons, "\n"),
+		"Enabled libraries (" .. #libraries .. "):\n" .. table.concat(libraries, "\n")
 end
 
 function LibAPH.BuildEnvironmentReport()
-	return LibAPH.GetLiveApiLine() .. "\n\n" .. LibAPH.BuildEnabledAddonsReport()
+	local addons, libraries = LibAPH.BuildEnabledAddonsReport()
+	return LibAPH.GetLiveApiLine() .. "\n\n" .. addons .. "\n\n" .. libraries
+end
+
+LibAPH.BUG_REPORT_SECTIONS = {
+	{ key = "pastebin", label = "Pastebin line" },
+	{ key = "platform", label = "Platform" },
+	{ key = "language", label = "Current Language" },
+	{ key = "live_api", label = "Live API" },
+	{ key = "installed", label = "Installed Since" },
+	{ key = "version_history", label = "Version History" },
+	{ key = "library_version", label = "Library Version" },
+	{ key = "wizard", label = "Wizard" },
+	{ key = "files", label = "Files" },
+	{ key = "settings", label = "Settings" },
+	{ key = "addons", label = "Enabled add-ons" },
+	{ key = "libraries", label = "Enabled libraries" },
+}
+
+function LibAPH.DefaultBugReportSections(hasErrors)
+	local enabled = {}
+	if not hasErrors then
+		for _, def in ipairs(LibAPH.BUG_REPORT_SECTIONS) do enabled[def.key] = true end
+	end
+	return enabled
+end
+
+function LibAPH.RenderBugReport(sections, enabled)
+	local parts = {}
+	if enabled.pastebin and sections.pastebin then parts[#parts + 1] = sections.pastebin end
+	parts[#parts + 1] = sections.errors
+	for _, def in ipairs(LibAPH.BUG_REPORT_SECTIONS) do
+		local text = sections[def.key]
+		if def.key ~= "pastebin" and enabled[def.key] and text and text ~= "" then parts[#parts + 1] = text end
+	end
+	return LibAPH.FitBugReportText(table.concat(parts, "\n\n"))
 end
 
 function LibAPH.FitBugReportText(text)
@@ -73,32 +103,29 @@ function LibAPH.CreateAddonBugReporter(opts)
 	local session_bugs = {}
 	if opts.getStore then opts.getStore().captured_bugs = nil end
 
-	local function BuildText()
-		local header = {
-			opts.title .. " bug report",
-			"Version: " .. tostring(opts.version or "unknown"),
-			"LibAPH: " .. tostring(LibAPH.VERSION),
-			"Platform: " .. tostring(LibAPH.GetPlatformString() or "unknown"),
-			"Language: " .. tostring(GetCVar("Language.2")),
-		}
-		local error_section
-		if #session_bugs > 0 then
-			local lines = {}
-			for _, bug in ipairs(session_bugs) do
-				lines[#lines + 1] = bug.count > 1 and (bug.text .. " (seen " .. bug.count .. "x)") or bug.text
-			end
-			error_section = "Lua errors captured:\n\n" .. table.concat(lines, "\n\n")
-		else
-			error_section = "No Lua error from " .. opts.title .. " was captured.\n"
-				.. "Describe the bug you saw here: what you were doing, what happened, and what you expected to happen.\n\n\n"
+	local function BuildSections()
+		local lines = {}
+		for _, bug in ipairs(session_bugs) do
+			lines[#lines + 1] = bug.count > 1 and (bug.text .. " (seen " .. bug.count .. "x)") or bug.text
 		end
-		return LibAPH.FitBugReportText(table.concat({
-			LibAPH.PASTEBIN_MESSAGE,
-			error_section,
-			table.concat(header, "\n"),
-			LibAPH.GetLiveApiLine(),
-			LibAPH.BuildEnabledAddonsReport(),
-		}, "\n\n"))
+		local identity = opts.title .. " bug report | Version " .. tostring(opts.version or "unknown") .. " | LibAPH " .. tostring(LibAPH.VERSION)
+		local error_section
+		if #lines > 0 then
+			error_section = identity .. "\n\nLua errors captured:\n\n" .. table.concat(lines, "\n\n")
+		else
+			error_section = identity .. "\n\nNo Lua error from " .. opts.title .. " was captured.\n"
+				.. "Describe the bug you saw here: what you were doing, what happened, and what you expected to happen.\n\n"
+		end
+		local addons, libraries = LibAPH.BuildEnabledAddonsReport()
+		return {
+			pastebin = LibAPH.PASTEBIN_MESSAGE,
+			errors = error_section,
+			platform = "Platform: " .. tostring(LibAPH.GetPlatformString() or "unknown"),
+			language = "Current Language: " .. tostring(GetCVar("Language.2")),
+			live_api = LibAPH.GetLiveApiLine(),
+			addons = addons,
+			libraries = libraries,
+		}, #lines > 0
 	end
 
 	function reporter.Show()
@@ -107,6 +134,7 @@ function LibAPH.CreateAddonBugReporter(opts)
 			name = opts.boxName,
 			titleText = LibAPH.BUG_REPORT_TITLE,
 			pastebin = true,
+			sections = true,
 			closeText = "Close",
 			maxInputChars = BUG_REPORT_MAX_CHARS,
 			dismissBug = { text = "Dismiss Bug", onClick = function()
@@ -118,7 +146,7 @@ function LibAPH.CreateAddonBugReporter(opts)
 				box:Hide()
 			end },
 		})
-		box:Show(BuildText())
+		box:ShowReport(BuildSections())
 	end
 
 	if not IsConsoleUI() then

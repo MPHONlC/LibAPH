@@ -131,28 +131,36 @@ function LibAPH.BuildModuleFileList(moduleOrder, moduleFiles, getState, labels, 
 	return table.concat(lines, sep or "\n  ")
 end
 
-local function StartsWithAny(line, prefixes)
-	for i, prefix in ipairs(prefixes) do
-		if prefix ~= "" and string.sub(line, 1, #prefix) == prefix then return i end
+local STATS_SECTION_KEYS = { "platform", "language", "installed", "version_history", "library_version", "wizard", "files" }
+
+local function MatchStatsSection(line, labels)
+	for _, key in ipairs(STATS_SECTION_KEYS) do
+		local label = labels[key]
+		if label and label ~= "" and string.sub(line, 1, #label) == label then return key end
 	end
 end
 
-function LibAPH.BuildBugReportText(opts)
-	local head_labels = opts.headFieldLabels or {}
-	local head, body = {}, {}
+function LibAPH.BuildBugReportSections(opts)
+	local labels = opts.fieldLabels or {}
+	local sections, current = {}, nil
 	for line in string.gmatch(opts.statsText .. "\n", "(.-)\n") do
-		local slot = StartsWithAny(line, head_labels)
-		if slot then head[slot] = line else body[#body + 1] = line end
+		current = MatchStatsSection(line, labels) or current
+		if current then
+			sections[current] = sections[current] and (sections[current] .. "\n" .. line) or line
+		end
 	end
-	local head_lines = {}
-	for i = 1, #head_labels do
-		if head[i] then head_lines[#head_lines + 1] = head[i] end
-	end
-	local sections = { LibAPH.PASTEBIN_MESSAGE, opts.errorSection }
-	if #head_lines > 0 then sections[#sections + 1] = table.concat(head_lines, "\n") end
-	sections[#sections + 1] = LibAPH.GetLiveApiLine()
-	sections[#sections + 1] = table.concat(body, "\n")
-	sections[#sections + 1] = opts.fieldSettingsLabel .. "\n  " .. opts.settingsLines:gsub("\n", "\n  ")
-	sections[#sections + 1] = LibAPH.BuildEnabledAddonsReport()
-	return LibAPH.FitBugReportText(table.concat(sections, "\n\n"))
+	local addons, libraries = LibAPH.BuildEnabledAddonsReport()
+	sections.pastebin = LibAPH.PASTEBIN_MESSAGE
+	sections.errors = opts.errorSection
+	sections.live_api = LibAPH.GetLiveApiLine()
+	sections.settings = opts.fieldSettingsLabel .. "\n  " .. opts.settingsLines:gsub("\n", "\n  ")
+	sections.addons = addons
+	sections.libraries = libraries
+	return sections
+end
+
+function LibAPH.BuildBugReportText(opts)
+	local all = {}
+	for _, def in ipairs(LibAPH.BUG_REPORT_SECTIONS) do all[def.key] = true end
+	return LibAPH.RenderBugReport(LibAPH.BuildBugReportSections(opts), all)
 end
