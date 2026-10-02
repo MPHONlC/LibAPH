@@ -1,0 +1,51 @@
+name: ✅ LibAPH Test Checklist (PC)
+description: Run through LibAPH's PC test checklist and report results
+title: '[TEST][PC] '
+labels:
+- testing
+assignees:
+- MPHONlC
+body:
+- type: markdown
+  attributes:
+    value: Thanks for testing **LibAPH** on PC! Check off everything you actually tested and confirmed working. Anything broken or partly working, describe it in the notes field at the end instead of checking it off.
+- type: input
+  id: version
+  attributes:
+    label: Add-on version
+    placeholder: e.g. 2026.09.29.21.48
+  validations:
+    required: true
+- type: dropdown
+  id: platform
+  attributes:
+    label: Platform
+    options:
+    - PC (NA)
+    - PC (EU)
+    - PC (PTS)
+  validations:
+    required: true
+- type: checkboxes
+  id: pc_tests
+  attributes:
+    label: PC tests confirmed working
+    options:
+    - label: 'Load: Log in with LibAPH and all your add-ons enabled.'
+    - label: 'Dialogs: Open any add-on status window (ALC or PermMemento), then run that add-on''s setup wizard (/alcwizard or /pmemwizard).'
+    - label: 'Theme: Open the APH-Profiler results window and the AoM category manager (/libcategories on PC).'
+    - label: 'Status window: Open an add-on status window (ALC, or PermMemento with UI Visibility on). Drag it, resize it by the corner, then reload.'
+    - label: 'Window lock and reset: Lock the status window from that add-on''s settings and try to drag it; then use its reset position and reset size buttons.'
+    - label: 'Bug report: Type /libaphbugreport.'
+    - label: 'Copy box: Type /libaphbugreport, click into the text, select all and copy; close it with the X.'
+    - label: 'Context menu: In the Add-Ons list, click the AoM cogwheel (profile triggers).'
+    - label: 'Key hints: Open APH-Search (Alt+S) and look at the hint row under the bar.'
+    - label: 'Search box hint: Open the APH-Search bar, a window search box (for example the AoM category manager) and the filter box of a right-click context menu.'
+    - label: 'Submenu memory: Open and close submenus in the ALC or PermMemento settings, close the panel, reload and reopen it.'
+    - label: 'Library warning: Disable LibAddonMenu-2.0 (PC) or LibHarvensAddonSettings (console), keep ALC on, reload.'
+- type: textarea
+  id: notes
+  attributes:
+    label: Anything broken, partly working, or not tested
+    description: 'One line per issue: which test, what happened instead of Expected.'
+    placeholder: 'e.g. PC-L-04 Bug report: popup opened but API version line was blank'
