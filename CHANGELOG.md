@@ -1,7 +1,7 @@
 LibAPH - Changelog
 ====================
 
-Version: 2026.10.06.13.49 (26100613)
+Version: 2026.10.07.07.01 (26100707)
 ---------------------------
 
   - Fixed shrinking button text falling back to the default font at its smallest sizes; it now steps down through the game's own fonts.

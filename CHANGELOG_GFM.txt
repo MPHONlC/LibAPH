@@ -1,4 +1,4 @@
-### Version 2026.10.06.13.49 <sub>*(10/06/2026)*</sub>
+### Version 2026.10.07.07.01 <sub>*(10/07/2026)*</sub>
 
 * Fixed shrinking button text falling back to the default font at its smallest sizes; it
   now steps down through the game's own fonts.
