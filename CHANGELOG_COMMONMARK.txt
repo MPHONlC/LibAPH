@@ -1,0 +1,6 @@
+# Changelog
+
+# VERSION 2026.10.07.17.24 (2026-10-07)
+
+- Slash commands can be shown or hidden.
+- Other add-ons can run the Auto Lua Memory Cleaner cleanup methods, and Auto Lua Memory Cleaner shows those cleanups.

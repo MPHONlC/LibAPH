@@ -1,0 +1,32 @@
+name: 'ESO Notify Dependents'
+description: "Starts the matching workflows in every repository that follows this one, once its daily run has finished."
+
+inputs:
+  token:
+    description: 'Token that can read and start workflows in the owner repositories (Contents: read and write)'
+    required: false
+    default: ''
+  source_workflow:
+    description: 'Path of the workflow that finished, from github.event.workflow_run.path'
+    required: true
+  marker:
+    description: 'File a repository has when it follows this one'
+    required: false
+    default: '.github/actions/eso-wait-for-libaph/wait_for_libaph.py'
+  dry_run:
+    description: "'true' lists the repositories it would notify without starting anything"
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Notify dependents
+      shell: bash
+      env:
+        DISPATCH_TOKEN: ${{ inputs.token }}
+        SOURCE_REPO: ${{ github.repository }}
+        SOURCE_WORKFLOW: ${{ inputs.source_workflow }}
+        MARKER: ${{ inputs.marker }}
+        DRY_RUN: ${{ inputs.dry_run }}
+      run: python3 "${{ github.action_path }}/notify_dependents.py"
