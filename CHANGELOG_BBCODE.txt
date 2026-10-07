@@ -1,0 +1,23 @@
+[SIZE="3"][b][COLOR="#4CAF50"]Changelog[/COLOR][/b][/SIZE]
+
+[b][COLOR="Orange"]Version 2026.10.07.17.24[/COLOR]: [COLOR="Gray"][i](10/07/2026)[/i][/COLOR][/b]
+
+[LIST]
+[*] Slash commands can be shown or hidden.
+[*] Other add-ons can run the Auto Lua Memory Cleaner cleanup methods, and Auto Lua Memory Cleaner shows those cleanups.
+[/LIST]
+
+[b][COLOR="Orange"]Version 2026.10.07.07.01[/COLOR]: [COLOR="Gray"][i](10/07/2026)[/i][/COLOR][/b]
+
+[LIST]
+[*] [COLOR="#FF6347"]Fixed[/COLOR] [COLOR="#FF6347"]shrinking button text falling back[/COLOR] to the default font at its smallest sizes; it now steps down through the game's own fonts.
+[*] Profiles can now be remembered per character.
+[*] Menu entries can show a tooltip beside the menu when you point at them.
+[*] Long lists of choices can be grouped into scrollable submenus, with the current choice marked.
+[/LIST]
+
+[b][COLOR="Orange"]Version 2026.10.06.07.36[/COLOR]: [COLOR="Gray"][i](10/06/2026)[/i][/COLOR][/b]
+
+[LIST]
+[*] Initial public release.
+[/LIST]
