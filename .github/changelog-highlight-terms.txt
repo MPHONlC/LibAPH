@@ -1,0 +1,36 @@
+Module Manager
+Setup Wizard
+Library Warning Messages
+chat and screen announcement messages
+submenus remembering
+console Settings Menu
+Live statistics
+shared low-memory rescue
+Low Add-On memory warning
+Limit Background FPS
+Idle Power Reduction
+controller button hints
+shared controller layer
+one-line status text
+Lua and add-on pool memory
+per-frame add-on CPU limit
+status window
+settings panel
+gamepad font
+Add-Ons menu
+Deep Clean
+FPS cap
+compass
+long number lists
+finished results
+unfinished work
+crash or disconnect
+wrap text to fit
+graph lines
+search results
+pooled pieces
+houses to travel to
+Cyrillic and Japanese
+
+Bug Report:Lime
+Client information:Lime
