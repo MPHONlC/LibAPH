@@ -1,4 +1,4 @@
-### Version 2026.10.15.14.36 <sub>*(10/15/2026)*</sub>
+### Version 2026.10.18.01.41 <sub>*(10/18/2026)*</sub>
 
 #### Menus
 * Changed where menus open: beside their window, on the side with the most room where the
