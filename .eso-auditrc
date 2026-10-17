@@ -1,0 +1,8 @@
+globals = {
+    "LibAPH",
+}
+
+reviewed_id64 = {
+    "GUIDE/GuideTravel.lua:GetFriendCharacterInfo",
+    "GUIDE/GuideTravel.lua:GetGuildMemberCharacterInfo",
+}
